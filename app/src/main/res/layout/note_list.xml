@@ -8,6 +8,8 @@
     android:layout_height="match_parent"
     android:layout_marginLeft="16dp"
     android:layout_marginRight="16dp"
+    android:paddingTop="16dp"
+    android:paddingBottom="16dp"
     app:layoutManager="LinearLayoutManager"
     tools:context="sahraei.hamidreza.com.notella.NoteListActivity"
-    tools:listitem="@layout/note_list_content" />
+    />

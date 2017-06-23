@@ -16,6 +16,7 @@ import android.widget.TextView;
 
 
 import sahraei.hamidreza.com.notella.Adapter.NoteListAdapter;
+import sahraei.hamidreza.com.notella.Adapter.OpenFolderCallBack;
 import sahraei.hamidreza.com.notella.Model.Folder;
 import sahraei.hamidreza.com.notella.Model.Note;
 
@@ -30,7 +31,7 @@ import java.util.List;
  * item details. On tablets, the activity presents the list of items and
  * item details side-by-side using two vertical panes.
  */
-public class NoteListActivity extends AppCompatActivity {
+public class NoteListActivity extends AppCompatActivity implements OpenFolderCallBack {
 
     private List<Object> items;
 
@@ -73,8 +74,17 @@ public class NoteListActivity extends AppCompatActivity {
     }
 
     private void setupRecyclerView(@NonNull RecyclerView recyclerView) {
-        items = new ArrayList<>();
-        recyclerView.setAdapter(new NoteListAdapter(this, items, mTwoPane));
+        NoteListAdapter noteListAdapter = new NoteListAdapter(getApplicationContext());
+        noteListAdapter.add(new Note("Test1","Salam"));
+        noteListAdapter.add(new Note("Test2","Salam"));
+        noteListAdapter.add(new Folder("Test3","Salam"));
+        noteListAdapter.add(new Note("Test4","Salam"));
+        recyclerView.setAdapter(noteListAdapter);
+    }
+
+    @Override
+    public void openFolder(String folderId) {
+
     }
 
 //    public class SimpleItemRecyclerViewAdapter

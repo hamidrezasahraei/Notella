@@ -9,6 +9,8 @@ import android.arch.persistence.room.PrimaryKey;
 import java.util.Date;
 import java.util.UUID;
 
+import sahraei.hamidreza.com.notella.Adapter.NoteListAdapter;
+
 import static android.arch.persistence.room.ForeignKey.CASCADE;
 
 /**
@@ -22,7 +24,7 @@ import static android.arch.persistence.room.ForeignKey.CASCADE;
                 childColumns="parentId",
                 onDelete=CASCADE),
         indices=@Index(value="parentId"))
-public class Note {
+public class Note implements ListItem {
     @PrimaryKey
     private String id;
     private String title;
@@ -44,6 +46,7 @@ public class Note {
     public Note(String id, String title, String text, Date creationDate, String parentId) {
         this.id=id;
         this.title=title;
+        this.text=text;
         this.parentId=parentId;
         this.creationDate=creationDate;
     }
@@ -56,8 +59,18 @@ public class Note {
         this.id = id;
     }
 
+    @Override
+    public int getType() {
+        return NoteListAdapter.NOTE_ITEM_TYPE;
+    }
+
     public String getTitle() {
         return title;
+    }
+
+    @Override
+    public String getDescription() {
+        return getText();
     }
 
     public void setTitle(String title) {

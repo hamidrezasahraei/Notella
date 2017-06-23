@@ -8,6 +8,8 @@ import android.arch.persistence.room.PrimaryKey;
 
 import java.util.UUID;
 
+import sahraei.hamidreza.com.notella.Adapter.NoteListAdapter;
+
 import static android.arch.persistence.room.ForeignKey.CASCADE;
 
 /**
@@ -21,7 +23,7 @@ import static android.arch.persistence.room.ForeignKey.CASCADE;
                 childColumns="parentId",
                 onDelete=CASCADE),
         indices=@Index(value="parentId"))
-public class Folder {
+public class Folder implements ListItem{
 
     @PrimaryKey
     public final String id;
@@ -48,8 +50,18 @@ public class Folder {
         return id;
     }
 
+    @Override
+    public int getType() {
+        return NoteListAdapter.FOLDER_ITEM_TYPE;
+    }
+
     public String getTitle() {
         return title;
+    }
+
+    @Override
+    public String getDescription() {
+        return null;
     }
 
     public String getParentId() {
