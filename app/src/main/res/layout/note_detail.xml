@@ -16,40 +16,50 @@
         android:orientation="horizontal"
         android:gravity="center_vertical"
         >
-        <ImageView
+        <ImageButton
+            android:id="@+id/text_format_bold"
             android:layout_width="0dp"
             android:layout_height="24dp"
             android:layout_weight="1"
+            android:background="@android:color/transparent"
             app:srcCompat="@drawable/ic_format_bold_white_24dp"
             />
-        <ImageView
+        <ImageButton
+            android:id="@+id/text_format_italic"
             android:layout_width="0dp"
             android:layout_height="24dp"
             android:layout_weight="1"
+            android:background="@android:color/transparent"
             app:srcCompat="@drawable/ic_format_italic_white_24dp"
             />
-        <ImageView
+        <ImageButton
+            android:id="@+id/text_format_strikethrough"
             android:layout_width="0dp"
             android:layout_height="24dp"
             android:layout_weight="1"
+            android:background="@android:color/transparent"
             app:srcCompat="@drawable/ic_format_strikethrough_white_24dp"
             />
-        <ImageView
+        <ImageButton
+            android:id="@+id/text_format_color"
             android:layout_width="0dp"
             android:layout_height="24dp"
             android:layout_weight="1"
+            android:background="@android:color/transparent"
             app:srcCompat="@drawable/ic_palette_white_24dp"
             />
-        <ImageView
+        <ImageButton
+            android:id="@+id/text_format_brush"
             android:layout_width="0dp"
             android:layout_height="24dp"
             android:layout_weight="1"
+            android:background="@android:color/transparent"
             app:srcCompat="@drawable/ic_brush_white_24dp"
             />
     </LinearLayout>
 
     <EditText
-        android:id="@+id/note_detail"
+        android:id="@+id/note_edittext"
         android:layout_below="@id/note_formatter_container"
         style="?android:attr/textAppearanceLarge"
         android:layout_width="match_parent"

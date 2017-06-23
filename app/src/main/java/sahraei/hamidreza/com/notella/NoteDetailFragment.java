@@ -1,12 +1,20 @@
 package sahraei.hamidreza.com.notella;
 
 import android.app.Activity;
+import android.graphics.Typeface;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.text.Editable;
+import android.text.Spannable;
+import android.text.TextWatcher;
+import android.text.style.StyleSpan;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import sahraei.hamidreza.com.notella.Model.Note;
@@ -17,7 +25,7 @@ import sahraei.hamidreza.com.notella.Model.Note;
  * in two-pane mode (on tablets) or a {@link NoteDetailActivity}
  * on handsets.
  */
-public class NoteDetailFragment extends Fragment {
+public class NoteDetailFragment extends Fragment implements View.OnClickListener {
     /**
      * The fragment argument representing the item ID that this fragment
      * represents.
@@ -28,6 +36,23 @@ public class NoteDetailFragment extends Fragment {
      * The note content this fragment is presenting.
      */
     private Note mItem;
+
+    /**
+     * The edittext which user writes his notes.
+     */
+    private EditText editText;
+
+    /**
+     * Used for keeping user text and store it as HTML in DB
+     * for formatting and styling
+     */
+    private Spannable spannable;
+
+    ImageButton boldTextButton;
+    ImageButton italicTextButton;
+    ImageButton strikeTextButton;
+    ImageButton colorPickerButton;
+    ImageButton drawButton;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -60,11 +85,78 @@ public class NoteDetailFragment extends Fragment {
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.note_detail, container, false);
 
+        editText = (EditText) rootView.findViewById(R.id.note_edittext);
+        boldTextButton = (ImageButton) rootView.findViewById(R.id.text_format_bold);
+        italicTextButton = (ImageButton) rootView.findViewById(R.id.text_format_italic);
+        strikeTextButton = (ImageButton) rootView.findViewById(R.id.text_format_strikethrough);
+        colorPickerButton = (ImageButton) rootView.findViewById(R.id.text_format_color);
+        drawButton = (ImageButton) rootView.findViewById(R.id.text_format_brush);
+
+        boldTextButton.setOnClickListener(this);
+        italicTextButton.setOnClickListener(this);
+        strikeTextButton.setOnClickListener(this);
+        colorPickerButton.setOnClickListener(this);
+        drawButton.setOnClickListener(this);
+
+        spannable = editText.getText();
+
+        editText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int start, int before, int count) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+
+            }
+        });
+
         // Show the dummy content as text in a TextView.
         if (mItem != null) {
 //            ((TextView) rootView.findViewById(R.id.note_detail)).setText(mItem.details);
         }
 
         return rootView;
+    }
+
+
+    @Override
+    public void onClick(View view) {
+        int id = view.getId();
+        switch (id){
+            case R.id.text_format_bold:
+                makeBold();
+                break;
+            case R.id.text_format_italic:
+
+                break;
+            case R.id.text_format_strikethrough:
+
+                break;
+            case R.id.text_format_color:
+
+                break;
+
+            case R.id.text_format_brush:
+
+                break;
+        }
+    }
+
+    private void makeBold(){
+        spannable = editText.getText();
+        int posStart = editText.getSelectionStart();
+        int posEnd = editText.getSelectionEnd();
+
+        spannable.setSpan(new StyleSpan(Typeface.BOLD), posStart, posEnd, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+        editText.setText(spannable);
+        editText.setSelection(editText.getText().length());
     }
 }
