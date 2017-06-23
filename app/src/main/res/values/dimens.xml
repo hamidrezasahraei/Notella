@@ -6,4 +6,10 @@
     <dimen name="app_bar_height">200dp</dimen>
     <dimen name="item_width">200dp</dimen>
     <dimen name="text_margin">16dp</dimen>
+
+    <dimen name="card_title">16sp</dimen>
+    <dimen name="card_desc">14sp</dimen>
+    <dimen name="card_height">72dp</dimen>
+    <dimen name="card_padding">8dp</dimen>
+    <dimen name="card_image_size">32dp</dimen>
 </resources>

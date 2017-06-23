@@ -10,7 +10,6 @@ import java.util.List;
 
 import sahraei.hamidreza.com.notella.Model.Folder;
 import sahraei.hamidreza.com.notella.Model.Note;
-import sahraei.hamidreza.com.notella.NoteListActivity;
 import sahraei.hamidreza.com.notella.R;
 
 /**
@@ -43,11 +42,12 @@ public class NoteListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         View view;
         switch (viewType) {
             case NOTE_ITEM_TYPE:
-                layoutRes = R.layout.note_item_recyclerview;
+                layoutRes = R.layout.note_recyclerview_item;
                 view = LayoutInflater.from(parent.getContext()).inflate(layoutRes, parent, false);
                 return new NoteItemViewHolder(view);
 
             case FOLDER_ITEM_TYPE:
+                layoutRes = R.layout.folder_recyclerview_item;
                 view = LayoutInflater.from(parent.getContext()).inflate(layoutRes, parent, false);
                 return new FolderItemViewHolder(view);
         }

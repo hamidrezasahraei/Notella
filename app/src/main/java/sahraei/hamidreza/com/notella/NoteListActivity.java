@@ -16,6 +16,7 @@ import android.widget.TextView;
 
 
 import sahraei.hamidreza.com.notella.Adapter.NoteListAdapter;
+import sahraei.hamidreza.com.notella.Model.Folder;
 import sahraei.hamidreza.com.notella.Model.Note;
 
 import java.util.ArrayList;
@@ -72,6 +73,7 @@ public class NoteListActivity extends AppCompatActivity {
     }
 
     private void setupRecyclerView(@NonNull RecyclerView recyclerView) {
+        items = new ArrayList<>();
         recyclerView.setAdapter(new NoteListAdapter(this, items, mTwoPane));
     }
 
