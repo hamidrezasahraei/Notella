@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Notella</string>
+    <string name="title_note_list">Note</string>
+    <string name="title_note_detail">Note Detail</string>
 </resources>
