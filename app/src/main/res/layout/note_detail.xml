@@ -1,9 +1,63 @@
-<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/note_detail"
-    style="?android:attr/textAppearanceLarge"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp"
-    android:textIsSelectable="true"
-    tools:context="sahraei.hamidreza.com.notella.NoteDetailFragment" />
+    android:fitsSystemWindows="true"
+    android:theme="@style/AppTheme.NoActionBar"
+    tools:context="sahraei.hamidreza.com.notella.NoteDetailActivity">
+
+    <LinearLayout
+        android:id="@+id/note_formatter_container"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:background="#607D8B"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        >
+        <ImageView
+            android:layout_width="0dp"
+            android:layout_height="24dp"
+            android:layout_weight="1"
+            app:srcCompat="@drawable/ic_format_bold_white_24dp"
+            />
+        <ImageView
+            android:layout_width="0dp"
+            android:layout_height="24dp"
+            android:layout_weight="1"
+            app:srcCompat="@drawable/ic_format_italic_white_24dp"
+            />
+        <ImageView
+            android:layout_width="0dp"
+            android:layout_height="24dp"
+            android:layout_weight="1"
+            app:srcCompat="@drawable/ic_format_strikethrough_white_24dp"
+            />
+        <ImageView
+            android:layout_width="0dp"
+            android:layout_height="24dp"
+            android:layout_weight="1"
+            app:srcCompat="@drawable/ic_palette_white_24dp"
+            />
+        <ImageView
+            android:layout_width="0dp"
+            android:layout_height="24dp"
+            android:layout_weight="1"
+            app:srcCompat="@drawable/ic_brush_white_24dp"
+            />
+    </LinearLayout>
+
+    <EditText
+        android:id="@+id/note_detail"
+        android:layout_below="@id/note_formatter_container"
+        style="?android:attr/textAppearanceLarge"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@android:color/white"
+        android:gravity="top"
+        android:inputType="textMultiLine"
+        android:padding="16dp"
+        tools:context="sahraei.hamidreza.com.notella.NoteDetailFragment" />
+
+</RelativeLayout>

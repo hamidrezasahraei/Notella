@@ -74,7 +74,7 @@ public class NoteListActivity extends AppCompatActivity implements OpenFolderCal
     }
 
     private void setupRecyclerView(@NonNull RecyclerView recyclerView) {
-        NoteListAdapter noteListAdapter = new NoteListAdapter(getApplicationContext());
+        NoteListAdapter noteListAdapter = new NoteListAdapter(this);
         noteListAdapter.add(new Note("Test1","Salam"));
         noteListAdapter.add(new Note("Test2","Salam"));
         noteListAdapter.add(new Folder("Test3","Salam"));
