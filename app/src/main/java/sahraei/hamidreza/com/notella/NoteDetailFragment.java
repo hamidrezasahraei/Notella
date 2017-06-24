@@ -1,13 +1,17 @@
 package sahraei.hamidreza.com.notella;
 
 import android.app.Activity;
+import android.graphics.Color;
 import android.graphics.Typeface;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.text.Editable;
+import android.text.ParcelableSpan;
 import android.text.Spannable;
 import android.text.TextWatcher;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.StrikethroughSpan;
 import android.text.style.StyleSpan;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -102,18 +106,18 @@ public class NoteDetailFragment extends Fragment implements View.OnClickListener
 
         editText.addTextChangedListener(new TextWatcher() {
             @Override
-            public void beforeTextChanged(CharSequence charSequence, int start, int before, int count) {
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
 
             }
 
             @Override
-            public void onTextChanged(CharSequence charSequence, int start, int count, int after) {
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
 
             }
 
             @Override
             public void afterTextChanged(Editable editable) {
-
+                System.out.println(editable.toString());
             }
         });
 
@@ -131,13 +135,13 @@ public class NoteDetailFragment extends Fragment implements View.OnClickListener
         int id = view.getId();
         switch (id){
             case R.id.text_format_bold:
-                makeBold();
+                formatText(new StyleSpan(Typeface.BOLD));
                 break;
             case R.id.text_format_italic:
-
+                formatText(new StyleSpan(Typeface.ITALIC));
                 break;
             case R.id.text_format_strikethrough:
-
+                formatText(new StrikethroughSpan());
                 break;
             case R.id.text_format_color:
 
@@ -149,13 +153,11 @@ public class NoteDetailFragment extends Fragment implements View.OnClickListener
         }
     }
 
-    private void makeBold(){
+    private void formatText(ParcelableSpan styleSpan){
         spannable = editText.getText();
         int posStart = editText.getSelectionStart();
         int posEnd = editText.getSelectionEnd();
-
-        spannable.setSpan(new StyleSpan(Typeface.BOLD), posStart, posEnd, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-
+        spannable.setSpan(styleSpan, posStart, posEnd, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         editText.setText(spannable);
         editText.setSelection(editText.getText().length());
     }
