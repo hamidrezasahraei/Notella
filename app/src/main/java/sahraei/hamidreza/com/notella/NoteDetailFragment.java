@@ -35,7 +35,7 @@ import sahraei.hamidreza.com.notella.Model.Note;
  * in two-pane mode (on tablets) or a {@link NoteDetailActivity}
  * on handsets.
  */
-public class NoteDetailFragment extends Fragment implements View.OnClickListener {
+public class NoteDetailFragment extends Fragment implements View.OnClickListener, ColorPickerGridRecyclerAdapter.ColorClickListener {
     /**
      * The fragment argument representing the item ID that this fragment
      * represents.
@@ -63,6 +63,14 @@ public class NoteDetailFragment extends Fragment implements View.OnClickListener
     ImageButton strikeTextButton;
     ImageButton colorPickerButton;
     ImageButton drawButton;
+
+    String[] colors = {"#000000", "#FFF44336", "#E91E63", "#9C27B0", "#673AB7", "#3F51B5", "#2196F3",
+            "#03A9F4", "#00BCD4", "#009688", "#4CAF50", "#8BC34A", "#CDDC39", "#FFEB3B", "#FFC107",
+            "#FF9800", "#FF5722", "#795548", "#9E9E9E", "#607D8B"};
+    Dialog colorPickerDialog;
+
+    int selectedTextStartPos;
+    int selectedTextEndPos;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -127,6 +135,17 @@ public class NoteDetailFragment extends Fragment implements View.OnClickListener
             }
         });
 
+        editText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View view, boolean hasFocus) {
+                if (!hasFocus){
+//                    selectedTextStartPos = editText.getSelectionStart();
+//                    selectedTextEndPos = editText.getSelectionEnd();
+                    System.out.println("hasnotfocued");
+                }
+            }
+        });
+
         // Show the dummy content as text in a TextView.
         if (mItem != null) {
 //            ((TextView) rootView.findViewById(R.id.note_detail)).setText(mItem.details);
@@ -171,22 +190,36 @@ public class NoteDetailFragment extends Fragment implements View.OnClickListener
     private void showColorPickerDialog(){
         int colorsColumnNumber = 4;
 
-        String[] colors = {"#000000", "#F44336", "#E91E63", "#9C27B0", "#673AB7", "#3F51B5", "#2196F3",
-        "#03A9F4", "#00BCD4", "#009688", "#4CAF50", "#8BC34A", "#CDDC39", "#FFEB3B", "#FFC107",
-                "#FF9800", "#FF5722", "#795548", "#9E9E9E", "#607D8B"};
+        selectedTextStartPos = editText.getSelectionStart();
+        selectedTextEndPos = editText.getSelectionEnd();
 
         AlertDialog.Builder alertDialog = new AlertDialog.Builder(getActivity());
         View convertView = LayoutInflater.from(getActivity()).inflate(R.layout.color_picker_dialog, null);
         alertDialog.setView(convertView);
         alertDialog.setTitle("Choose a color:");
-        Dialog dialog = alertDialog.create();
+        colorPickerDialog = alertDialog.create();
         RecyclerView rv = (RecyclerView) convertView.findViewById(R.id.color_picker_list);
         rv.setLayoutManager(new GridLayoutManager(getActivity(), colorsColumnNumber));
         rv.setHasFixedSize(true);
 
         ColorPickerGridRecyclerAdapter adapter = new ColorPickerGridRecyclerAdapter(getActivity(), colors);
+        adapter.setClickListener(this);
         rv.setAdapter(adapter);
 
-        dialog.show();
+        colorPickerDialog.show();
+    }
+
+    @Override
+    public void onColorClick(View view, int position) {
+        int colorCode = Color.parseColor(colors[position]);
+        /**
+         * use for changing color of color picker button while user typing.
+         */
+//        colorPickerButton.setColorFilter(colorCode);
+        spannable = editText.getText();
+        spannable.setSpan(new ForegroundColorSpan(colorCode), selectedTextStartPos, selectedTextEndPos, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        editText.setText(spannable);
+        editText.setSelection(editText.getText().length());
+        colorPickerDialog.dismiss();
     }
 }

@@ -18,7 +18,8 @@ public class ColorPickerGridRecyclerAdapter extends RecyclerView.Adapter<ColorPi
 
     private String[] mData;
     private LayoutInflater mInflater;
-    private ItemClickListener mClickListener;
+    private ColorClickListener mColorClickListener;
+    private int lastCheckedPosition = -1;
 
     // data is passed into the constructor
     public ColorPickerGridRecyclerAdapter(Context context, String[] data) {
@@ -56,12 +57,12 @@ public class ColorPickerGridRecyclerAdapter extends RecyclerView.Adapter<ColorPi
         public ViewHolder(View itemView) {
             super(itemView);
             colorCircle = itemView.findViewById(R.id.color_picker_circle);
-            itemView.setOnClickListener(this);
+            colorCircle.setOnClickListener(this);
         }
 
         @Override
         public void onClick(View view) {
-            if (mClickListener != null) mClickListener.onItemClick(view, getAdapterPosition());
+            if (mColorClickListener != null) mColorClickListener.onColorClick(view, getAdapterPosition());
         }
     }
 
@@ -71,12 +72,12 @@ public class ColorPickerGridRecyclerAdapter extends RecyclerView.Adapter<ColorPi
     }
 
     // allows clicks events to be caught
-    public void setClickListener(ItemClickListener itemClickListener) {
-        this.mClickListener = itemClickListener;
+    public void setClickListener(ColorClickListener itemClickListener) {
+        this.mColorClickListener = itemClickListener;
     }
 
     // parent activity will implement this method to respond to click events
-    public interface ItemClickListener {
-        void onItemClick(View view, int position);
+    public interface ColorClickListener {
+        void onColorClick(View view, int position);
     }
 }
