@@ -1,11 +1,16 @@
 package sahraei.hamidreza.com.notella;
 
 import android.app.Activity;
+import android.app.Dialog;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AlertDialog;
+import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
 import android.text.ParcelableSpan;
 import android.text.Spannable;
@@ -21,6 +26,7 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
+import sahraei.hamidreza.com.notella.Adapter.ColorPickerGridRecyclerAdapter;
 import sahraei.hamidreza.com.notella.Model.Note;
 
 /**
@@ -144,7 +150,7 @@ public class NoteDetailFragment extends Fragment implements View.OnClickListener
                 formatText(new StrikethroughSpan());
                 break;
             case R.id.text_format_color:
-
+                showColorPickerDialog();
                 break;
 
             case R.id.text_format_brush:
@@ -160,5 +166,27 @@ public class NoteDetailFragment extends Fragment implements View.OnClickListener
         spannable.setSpan(styleSpan, posStart, posEnd, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         editText.setText(spannable);
         editText.setSelection(editText.getText().length());
+    }
+
+    private void showColorPickerDialog(){
+        int colorsColumnNumber = 4;
+
+        String[] colors = {"#000000", "#F44336", "#E91E63", "#9C27B0", "#673AB7", "#3F51B5", "#2196F3",
+        "#03A9F4", "#00BCD4", "#009688", "#4CAF50", "#8BC34A", "#CDDC39", "#FFEB3B", "#FFC107",
+                "#FF9800", "#FF5722", "#795548", "#9E9E9E", "#607D8B"};
+
+        AlertDialog.Builder alertDialog = new AlertDialog.Builder(getActivity());
+        View convertView = LayoutInflater.from(getActivity()).inflate(R.layout.color_picker_dialog, null);
+        alertDialog.setView(convertView);
+        alertDialog.setTitle("Choose a color:");
+        Dialog dialog = alertDialog.create();
+        RecyclerView rv = (RecyclerView) convertView.findViewById(R.id.color_picker_list);
+        rv.setLayoutManager(new GridLayoutManager(getActivity(), colorsColumnNumber));
+        rv.setHasFixedSize(true);
+
+        ColorPickerGridRecyclerAdapter adapter = new ColorPickerGridRecyclerAdapter(getActivity(), colors);
+        rv.setAdapter(adapter);
+
+        dialog.show();
     }
 }
