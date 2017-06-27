@@ -1,6 +1,5 @@
 package sahraei.hamidreza.com.notella;
 
-import android.app.Activity;
 import android.app.Dialog;
 import android.graphics.Color;
 import android.graphics.Typeface;
@@ -10,6 +9,7 @@ import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.ViewStubCompat;
 import android.text.Editable;
 import android.text.Html;
 import android.text.ParcelableSpan;
@@ -66,11 +66,21 @@ public class NoteDetailFragment extends Fragment implements View.OnClickListener
      */
     private Spannable noteTextSpannable;
 
+    View textModeMarkupContainer;
+    View drawModeMarkupContainer;
+    ViewStubCompat drawModeMarkupContainerViewStub;
+
     ImageButton boldTextButton;
     ImageButton italicTextButton;
     ImageButton strikeTextButton;
     ImageButton colorPickerButton;
     ImageButton drawButton;
+
+    ImageButton clearDrawButton;
+    ImageButton ereaserButton;
+    ImageButton changeBrushColorButton;
+    View changeBrushSizeButton;
+    ImageButton textModeButton;
 
     /**
      * indeterminate progressbar for saving and fetching in android
@@ -105,6 +115,9 @@ public class NoteDetailFragment extends Fragment implements View.OnClickListener
     // Draw mode booleans
     private boolean isDrawModeOn;
     private boolean isTextModeOn;
+
+    private boolean isEraseMode;
+    private boolean isPaintMode;
 
     // Drawing canvas
     private DrawingView drawingView;
@@ -149,11 +162,15 @@ public class NoteDetailFragment extends Fragment implements View.OnClickListener
         View rootView = inflater.inflate(R.layout.note_detail, container, false);
 
         editText = (EditText) rootView.findViewById(R.id.note_edittext);
+        drawModeMarkupContainerViewStub = (ViewStubCompat) rootView.findViewById(R.id.draw_markup_container);
+        textModeMarkupContainer = rootView.findViewById(R.id.text_markup_container);
+
         boldTextButton = (ImageButton) rootView.findViewById(R.id.text_format_bold);
         italicTextButton = (ImageButton) rootView.findViewById(R.id.text_format_italic);
         strikeTextButton = (ImageButton) rootView.findViewById(R.id.text_format_strikethrough);
         colorPickerButton = (ImageButton) rootView.findViewById(R.id.text_format_color);
         drawButton = (ImageButton) rootView.findViewById(R.id.text_format_brush);
+
         drawingView = (DrawingView) rootView.findViewById(R.id.drawing_view);
 
         boldTextButton.setOnClickListener(this);
@@ -162,11 +179,13 @@ public class NoteDetailFragment extends Fragment implements View.OnClickListener
         colorPickerButton.setOnClickListener(this);
         drawButton.setOnClickListener(this);
 
+
         // set boolean values
         isDrawModeOn = false;
         isTextModeOn = true;
 
-
+        isEraseMode = false;
+        isPaintMode = true;
 
         progressBar = (ProgressBar) rootView.findViewById(R.id.progressbar);
 
@@ -231,9 +250,22 @@ public class NoteDetailFragment extends Fragment implements View.OnClickListener
                 break;
 
             case R.id.text_format_brush:
-                isDrawModeOn = true;
-                isTextModeOn = false;
+                if (drawModeMarkupContainer == null){
+                    drawModeMarkupContainer = drawModeMarkupContainerViewStub.inflate();
+                }
+                setDrawPanelButtonsOnClick();
+                toggleTextDrawMode();
                 break;
+            case R.id.draw_format_text:
+                toggleTextDrawMode();
+                break;
+
+            case R.id.draw_eraser:
+                toggleEraserBrush();
+                break;
+
+            case R.id.draw_refresh:
+                eraseAllDraws();
         }
     }
 
@@ -271,14 +303,16 @@ public class NoteDetailFragment extends Fragment implements View.OnClickListener
     @Override
     public void onColorClick(View view, int position) {
         int colorCode = Color.parseColor(colors[position]);
-        /**
-         * use for changing color of color picker button while user typing.
-         */
-//        colorPickerButton.setColorFilter(colorCode);
-        noteTextSpannable = editText.getText();
-        noteTextSpannable.setSpan(new ForegroundColorSpan(colorCode), selectedTextStartPos, selectedTextEndPos, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-        editText.setText(noteTextSpannable);
-        editText.setSelection(editText.getText().length());
+
+        if (isTextModeOn) {
+            noteTextSpannable = editText.getText();
+            noteTextSpannable.setSpan(new ForegroundColorSpan(colorCode), selectedTextStartPos, selectedTextEndPos, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            editText.setText(noteTextSpannable);
+            editText.setSelection(editText.getText().length());
+        }else if (isDrawModeOn){
+            drawingView.setPaintColor(colorCode);
+            changeBrushColorButton.setColorFilter(colorCode);
+        }
         colorPickerDialog.dismiss();
     }
 
@@ -349,6 +383,58 @@ public class NoteDetailFragment extends Fragment implements View.OnClickListener
         }
         editText.setText(text);
 
+    }
+
+    private void checkViewStubInflated(ViewStubCompat viewStubCompat, View inflatedView){
+        if (viewStubCompat.getParent() != null){
+            inflatedView = viewStubCompat.inflate();
+        }
+
+    }
+
+    private void setDrawPanelButtonsOnClick(){
+        clearDrawButton = (ImageButton) drawModeMarkupContainer.findViewById(R.id.draw_refresh);
+        ereaserButton = (ImageButton) drawModeMarkupContainer.findViewById(R.id.draw_eraser);
+        changeBrushSizeButton =  drawModeMarkupContainer.findViewById(R.id.draw_brush_size);
+        textModeButton = (ImageButton) drawModeMarkupContainer.findViewById(R.id.draw_format_text);
+        changeBrushColorButton = (ImageButton) drawModeMarkupContainer.findViewById(R.id.text_format_color);
+
+        textModeButton.setOnClickListener(this);
+        clearDrawButton.setOnClickListener(this);
+        changeBrushSizeButton.setOnClickListener(this);
+        ereaserButton.setOnClickListener(this);
+        changeBrushColorButton.setOnClickListener(this);
+    }
+
+    private void toggleTextDrawMode(){
+        isTextModeOn = !isTextModeOn;
+        isDrawModeOn = !isDrawModeOn;
+        if (isTextModeOn){
+            if (drawModeMarkupContainer.getVisibility() == View.VISIBLE){
+                drawModeMarkupContainer.setVisibility(View.INVISIBLE);
+                textModeMarkupContainer.setVisibility(View.VISIBLE);
+            }
+        }else {
+            if (drawModeMarkupContainer.getVisibility() != View.VISIBLE){
+                drawModeMarkupContainer.setVisibility(View.VISIBLE);
+                textModeMarkupContainer.setVisibility(View.INVISIBLE);
+            }
+        }
+    }
+
+    private void toggleEraserBrush(){
+        isPaintMode = !isPaintMode;
+        isEraseMode = !isEraseMode;
+        if (isEraseMode){
+            ereaserButton.setImageResource(R.drawable.ic_brush_white_24dp);
+        }else {
+            ereaserButton.setImageResource(R.drawable.ic_eraser_white_24dp);
+        }
+        drawingView.setErase(isEraseMode);
+    }
+
+    private void eraseAllDraws(){
+        drawingView.startNew();
     }
 
     private void showProgressbar(){

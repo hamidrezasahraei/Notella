@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/note_formatter_container"
+    android:layout_width="match_parent"
+    android:layout_height="48dp"
+    android:layout_alignParentLeft="true"
+    android:layout_alignParentStart="true"
+    android:layout_alignParentTop="true"
+    android:background="#795548"
+    android:gravity="center_vertical"
+    android:orientation="horizontal">
+
+    <ImageButton
+        android:id="@+id/draw_refresh"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:background="@android:color/transparent"
+        app:srcCompat="@drawable/ic_refresh_white_24dp" />
+
+    <ImageButton
+        android:id="@+id/draw_eraser"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:background="@android:color/transparent"
+        app:srcCompat="@drawable/ic_eraser_white_24dp" />
+
+    <!--<ImageButton-->
+        <!--android:id="@+id/text_format_strikethrough"-->
+        <!--android:layout_width="0dp"-->
+        <!--android:layout_height="24dp"-->
+        <!--android:layout_weight="1"-->
+        <!--android:background="@android:color/transparent"-->
+        <!--app:srcCompat="@drawable/ic_format_strikethrough_white_24dp" />-->
+    <LinearLayout
+        android:id="@+id/draw_brush_size"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:layout_weight="1"
+        android:gravity="center"
+        >
+        <ImageButton
+            android:layout_width="match_parent"
+            android:layout_height="16dp"
+            android:background="@android:color/transparent"
+            app:srcCompat="@drawable/ic_circle_white_24dp" />
+        <TextView
+            android:id="@+id/draw_brush_size_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Medium"
+            android:textSize="11sp"
+            android:textColor="@color/colorTextIcon"
+            />
+
+    </LinearLayout>
+
+    <ImageButton
+        android:id="@+id/text_format_color"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:background="@android:color/transparent"
+        app:srcCompat="@drawable/ic_palette_white_24dp" />
+
+    <ImageButton
+        android:id="@+id/draw_format_text"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:background="@android:color/transparent"
+        app:srcCompat="@drawable/ic_keyboard_white_24dp" />
+</LinearLayout>
