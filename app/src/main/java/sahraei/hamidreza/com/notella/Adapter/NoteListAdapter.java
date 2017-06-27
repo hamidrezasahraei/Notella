@@ -194,10 +194,10 @@ public class NoteListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         items.updateItemAt(index, item);
     }
 
-    public void addAll(List<ListItem> items) {
+    public void addAll(List<? extends ListItem> items) {
         this.items.beginBatchedUpdates();
         for (ListItem item : items) {
-            items.add(item);
+            this.items.add(item);
         }
         this.items.endBatchedUpdates();
     }

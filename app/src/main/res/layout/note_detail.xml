@@ -6,6 +6,7 @@
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
     android:theme="@style/AppTheme.NoActionBar"
+    android:background="@android:color/white"
     tools:context="sahraei.hamidreza.com.notella.NoteDetailActivity">
 
     <LinearLayout
@@ -60,6 +61,13 @@
             />
     </LinearLayout>
 
+    <sahraei.hamidreza.com.notella.CustomView.DrawingView
+        android:id="@+id/drawing_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/note_formatter_container"
+        android:background="@android:color/transparent"
+        />
 
     <EditText
         android:id="@+id/note_edittext"
@@ -67,9 +75,10 @@
         style="?android:attr/textAppearanceLarge"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@android:color/white"
         android:gravity="top"
         android:inputType="textMultiLine|textNoSuggestions"
+        android:background="@android:color/transparent"
+        android:scrollbars="vertical"
         android:padding="16dp"
         tools:context="sahraei.hamidreza.com.notella.NoteDetailFragment" />
 
@@ -84,4 +93,13 @@
         app:srcCompat="@drawable/ic_check_black_24dp"
         android:tint="@android:color/white"
         />
+    <ProgressBar
+        android:id="@+id/progressbar"
+        style="?android:attr/progressBarStyleSmall"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="16dp"/>
 </RelativeLayout>

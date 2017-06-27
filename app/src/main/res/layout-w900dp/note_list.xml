@@ -21,7 +21,8 @@
         xmlns:tools="http://schemas.android.com/tools"
         android:id="@+id/note_list"
         android:name="sahraei.hamidreza.com.notella.NoteListFragment"
-        android:layout_width="@dimen/item_width"
+        android:layout_width="0dp"
+        android:layout_weight="2"
         android:layout_height="match_parent"
         android:layout_marginLeft="16dp"
         android:layout_marginRight="16dp"
@@ -33,6 +34,6 @@
         android:id="@+id/note_detail_container"
         android:layout_width="0dp"
         android:layout_height="match_parent"
-        android:layout_weight="3" />
+        android:layout_weight="4" />
 
 </LinearLayout>

@@ -9,6 +9,7 @@ import android.arch.persistence.room.Query;
 import java.util.List;
 
 import sahraei.hamidreza.com.notella.Model.Folder;
+import sahraei.hamidreza.com.notella.Model.ListItem;
 import sahraei.hamidreza.com.notella.Model.Note;
 
 /**

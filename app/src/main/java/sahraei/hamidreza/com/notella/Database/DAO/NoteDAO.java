@@ -20,7 +20,10 @@ public interface NoteDAO {
     List<Note> getAll();
 
     @Query("SELECT * FROM notes WHERE id IN (:noteIds)")
-    List<Note> loadAllByIds(int[] noteIds);
+    List<Note> loadAllByIds(String[] noteIds);
+
+    @Query("SELECT * FROM notes WHERE id = (:noteIds)")
+    Note loadNoteById(String noteIds);
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insertAll(Note... notes);

@@ -11,6 +11,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.ActionBar;
 import android.support.v4.app.NavUtils;
 import android.view.MenuItem;
+import android.view.Window;
 
 /**
  * An activity representing a single Note detail screen. This
@@ -55,8 +56,10 @@ public class NoteDetailActivity extends AppCompatActivity {
             // Create the detail fragment and add it to the activity
             // using a fragment transaction.
             Bundle arguments = new Bundle();
+//            arguments.putString(NoteDetailFragment.ARG_ITEM_ID,
+//                    getIntent().getStringExtra(NoteDetailFragment.ARG_ITEM_ID));
             arguments.putString(NoteDetailFragment.ARG_ITEM_ID,
-                    getIntent().getStringExtra(NoteDetailFragment.ARG_ITEM_ID));
+                    "NEW");
             NoteDetailFragment fragment = new NoteDetailFragment();
             fragment.setArguments(arguments);
             getSupportFragmentManager().beginTransaction()

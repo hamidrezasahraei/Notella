@@ -4,29 +4,33 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.graphics.Color;
 import android.graphics.Typeface;
-import android.support.design.widget.CollapsingToolbarLayout;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
+import android.text.Html;
 import android.text.ParcelableSpan;
 import android.text.Spannable;
+import android.text.Spanned;
 import android.text.TextWatcher;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.StrikethroughSpan;
 import android.text.style.StyleSpan;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
+import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.TextView;
+import android.widget.ProgressBar;
 
 import sahraei.hamidreza.com.notella.Adapter.ColorPickerGridRecyclerAdapter;
+import sahraei.hamidreza.com.notella.CustomView.DrawingView;
+import sahraei.hamidreza.com.notella.Database.AppDatabase;
 import sahraei.hamidreza.com.notella.Model.Note;
 
 /**
@@ -39,8 +43,12 @@ public class NoteDetailFragment extends Fragment implements View.OnClickListener
     /**
      * The fragment argument representing the item ID that this fragment
      * represents.
+     * if item_id equals to "NEW" means that want to create a new note
      */
     public static final String ARG_ITEM_ID = "item_id";
+    public static final String NEW_NOTE_VALUE = "NEW";
+
+    public static final String ARG_ITEM_PARENT_ID = "parent_id";
 
     /**
      * The note content this fragment is presenting.
@@ -56,13 +64,18 @@ public class NoteDetailFragment extends Fragment implements View.OnClickListener
      * Used for keeping user text and store it as HTML in DB
      * for formatting and styling
      */
-    private Spannable spannable;
+    private Spannable noteTextSpannable;
 
     ImageButton boldTextButton;
     ImageButton italicTextButton;
     ImageButton strikeTextButton;
     ImageButton colorPickerButton;
     ImageButton drawButton;
+
+    /**
+     * indeterminate progressbar for saving and fetching in android
+     */
+    ProgressBar progressBar;
 
     String[] colors = {"#000000", "#FFF44336", "#E91E63", "#9C27B0", "#673AB7", "#3F51B5", "#2196F3",
             "#03A9F4", "#00BCD4", "#009688", "#4CAF50", "#8BC34A", "#CDDC39", "#FFEB3B", "#FFC107",
@@ -71,6 +84,37 @@ public class NoteDetailFragment extends Fragment implements View.OnClickListener
 
     int selectedTextStartPos;
     int selectedTextEndPos;
+
+    /**
+     * ID of note
+     * if eauals to "NEW" means new note, otherwise used for loading a note
+     */
+    String noteId;
+
+    /**
+     * Title of note
+     */
+    String noteTitle;
+
+    /**
+     * Parent of this note which come from intent
+     */
+    String parentId;
+
+
+    // Draw mode booleans
+    private boolean isDrawModeOn;
+    private boolean isTextModeOn;
+
+    // Drawing canvas
+    private DrawingView drawingView;
+
+    // Brush sizes
+    private static final float
+            SMALL_BRUSH = 5,
+            MEDIUM_BRUSH = 10,
+            LARGE_BRUSH = 20;
+
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -82,19 +126,20 @@ public class NoteDetailFragment extends Fragment implements View.OnClickListener
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+
 
         if (getArguments().containsKey(ARG_ITEM_ID)) {
-            // Load the dummy content specified by the fragment
-            // arguments. In a real-world scenario, use a Loader
-            // to load content from a content provider.
-//            mItem = DummyContent.ITEM_MAP.get(getArguments().getString(ARG_ITEM_ID));
-            //TODO: Load note into this page
+            noteId = getArguments().getString(ARG_ITEM_ID);
+            if (noteId.equals(NEW_NOTE_VALUE)){
+                //TODO:new note
+            }else {
+                //TODO:fetch from db
+            }
+        }
 
-            Activity activity = this.getActivity();
-//            CollapsingToolbarLayout appBarLayout = (CollapsingToolbarLayout) activity.findViewById(R.id.toolbar_layout);
-//            if (appBarLayout != null) {
-//                appBarLayout.setTitle(mItem.getTitle());
-//            }
+        if (getArguments().containsKey(ARG_ITEM_PARENT_ID)) {
+            parentId = getArguments().getString(ARG_ITEM_PARENT_ID);
         }
     }
 
@@ -109,6 +154,7 @@ public class NoteDetailFragment extends Fragment implements View.OnClickListener
         strikeTextButton = (ImageButton) rootView.findViewById(R.id.text_format_strikethrough);
         colorPickerButton = (ImageButton) rootView.findViewById(R.id.text_format_color);
         drawButton = (ImageButton) rootView.findViewById(R.id.text_format_brush);
+        drawingView = (DrawingView) rootView.findViewById(R.id.drawing_view);
 
         boldTextButton.setOnClickListener(this);
         italicTextButton.setOnClickListener(this);
@@ -116,7 +162,15 @@ public class NoteDetailFragment extends Fragment implements View.OnClickListener
         colorPickerButton.setOnClickListener(this);
         drawButton.setOnClickListener(this);
 
-        spannable = editText.getText();
+        // set boolean values
+        isDrawModeOn = false;
+        isTextModeOn = true;
+
+
+
+        progressBar = (ProgressBar) rootView.findViewById(R.id.progressbar);
+
+        noteTextSpannable = editText.getText();
 
         editText.addTextChangedListener(new TextWatcher() {
             @Override
@@ -135,16 +189,20 @@ public class NoteDetailFragment extends Fragment implements View.OnClickListener
             }
         });
 
-        editText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+        // Handling drawingView's onTouchListener via EditText onTouchListener
+        editText.setOnTouchListener(new View.OnTouchListener() {
+
             @Override
-            public void onFocusChange(View view, boolean hasFocus) {
-                if (!hasFocus){
-//                    selectedTextStartPos = editText.getSelectionStart();
-//                    selectedTextEndPos = editText.getSelectionEnd();
-                    System.out.println("hasnotfocued");
+            public boolean onTouch(View v, MotionEvent event) {
+                if (isDrawModeOn) {
+                    drawingView.onTouchEvent(event);
+                    return true;
+                } else {
+                    return false;
                 }
             }
         });
+
 
         // Show the dummy content as text in a TextView.
         if (mItem != null) {
@@ -173,17 +231,18 @@ public class NoteDetailFragment extends Fragment implements View.OnClickListener
                 break;
 
             case R.id.text_format_brush:
-
+                isDrawModeOn = true;
+                isTextModeOn = false;
                 break;
         }
     }
 
     private void formatText(ParcelableSpan styleSpan){
-        spannable = editText.getText();
+        noteTextSpannable = editText.getText();
         int posStart = editText.getSelectionStart();
         int posEnd = editText.getSelectionEnd();
-        spannable.setSpan(styleSpan, posStart, posEnd, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-        editText.setText(spannable);
+        noteTextSpannable.setSpan(styleSpan, posStart, posEnd, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        editText.setText(noteTextSpannable);
         editText.setSelection(editText.getText().length());
     }
 
@@ -196,7 +255,7 @@ public class NoteDetailFragment extends Fragment implements View.OnClickListener
         AlertDialog.Builder alertDialog = new AlertDialog.Builder(getActivity());
         View convertView = LayoutInflater.from(getActivity()).inflate(R.layout.color_picker_dialog, null);
         alertDialog.setView(convertView);
-        alertDialog.setTitle("Choose a color:");
+        alertDialog.setTitle(R.string.choose_color);
         colorPickerDialog = alertDialog.create();
         RecyclerView rv = (RecyclerView) convertView.findViewById(R.id.color_picker_list);
         rv.setLayoutManager(new GridLayoutManager(getActivity(), colorsColumnNumber));
@@ -216,10 +275,87 @@ public class NoteDetailFragment extends Fragment implements View.OnClickListener
          * use for changing color of color picker button while user typing.
          */
 //        colorPickerButton.setColorFilter(colorCode);
-        spannable = editText.getText();
-        spannable.setSpan(new ForegroundColorSpan(colorCode), selectedTextStartPos, selectedTextEndPos, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-        editText.setText(spannable);
+        noteTextSpannable = editText.getText();
+        noteTextSpannable.setSpan(new ForegroundColorSpan(colorCode), selectedTextStartPos, selectedTextEndPos, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        editText.setText(noteTextSpannable);
         editText.setSelection(editText.getText().length());
         colorPickerDialog.dismiss();
+    }
+
+    @SuppressWarnings("deprecation")
+    public void saveNote(){
+        String htmlText;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+            htmlText = Html.toHtml(noteTextSpannable, Html.FROM_HTML_MODE_LEGACY);
+        } else {
+            htmlText = Html.toHtml(noteTextSpannable);
+        }
+        Note note = new Note(noteTitle, htmlText);
+        AppDatabase.getInstance(getContext()).noteDAO().insertAll(note);
+    }
+
+
+    public class SaveNoteToDB extends AsyncTask<Note, Integer, Void>{
+
+        @Override
+        protected Void doInBackground(Note... notes) {
+            AppDatabase.getInstance(getContext()).noteDAO().insertAll(notes[0]);
+            return null;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            showProgressbar();
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+            hideProgressbar();
+        }
+    }
+
+    public class GetNoteFromDB extends AsyncTask<String,Integer,Note>{
+
+        @Override
+        protected Note doInBackground(String... strings) {
+            String noteID = strings[0];
+            Note note = AppDatabase.getInstance(getContext()).noteDAO().loadNoteById(noteID);
+            return note;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            showProgressbar();
+        }
+
+        @Override
+        protected void onPostExecute(Note note) {
+            super.onPostExecute(note);
+            hideProgressbar();
+            setNoteToView(note);
+        }
+    }
+
+    @SuppressWarnings("deprecation")
+    private void setNoteToView(Note note){
+        Spanned text;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+            text = Html.fromHtml(note.getText(), Html.FROM_HTML_MODE_LEGACY);
+        } else {
+            text = Html.fromHtml(note.getText());
+        }
+        editText.setText(text);
+
+    }
+
+    private void showProgressbar(){
+        progressBar.setVisibility(View.VISIBLE);
+    }
+
+    private void hideProgressbar(){
+        progressBar.setVisibility(View.GONE);
     }
 }
