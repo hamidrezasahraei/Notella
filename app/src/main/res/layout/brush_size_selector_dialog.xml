@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="horizontal"
+    android:background="@android:color/white"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_horizontal"
+    android:divider="?android:attr/dividerHorizontal"
+    android:showDividers="middle"
+    android:padding="16dp"
+    >
+   <ImageButton
+       android:id="@+id/brush_small"
+       android:layout_width="72dp"
+       android:layout_height="72dp"
+       app:srcCompat="@drawable/ic_paint_brush_small"
+       android:background="@android:color/transparent"
+       />
+    <ImageButton
+        android:id="@+id/brush_medium"
+        android:layout_width="72dp"
+        android:layout_height="72dp"
+        app:srcCompat="@drawable/ic_paint_brush_medium"
+        android:background="@android:color/transparent"
+        />
+
+    <ImageButton
+        android:id="@+id/brush_large"
+        android:layout_width="72dp"
+        android:layout_height="72dp"
+        app:srcCompat="@drawable/ic_paint_brush_large"
+        android:background="@android:color/transparent"
+        />
+</LinearLayout>

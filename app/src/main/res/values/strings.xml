@@ -4,4 +4,8 @@
     <string name="title_note_detail">Note Detail</string>
     <string name="choose_color">Choose a color:</string>
     <string name="all">All</string>
+    <string name="choose_brush_size">Choose brush size:</string>
+    <string name="small">Small</string>
+    <string name="medium">Medium</string>
+    <string name="large">Large</string>
 </resources>

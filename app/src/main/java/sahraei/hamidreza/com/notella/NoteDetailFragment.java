@@ -24,14 +24,18 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import sahraei.hamidreza.com.notella.Adapter.ColorPickerGridRecyclerAdapter;
 import sahraei.hamidreza.com.notella.CustomView.DrawingView;
 import sahraei.hamidreza.com.notella.Database.AppDatabase;
 import sahraei.hamidreza.com.notella.Model.Note;
+
+import static android.content.Context.INPUT_METHOD_SERVICE;
 
 /**
  * A fragment representing a single Note detail screen.
@@ -77,9 +81,10 @@ public class NoteDetailFragment extends Fragment implements View.OnClickListener
     ImageButton drawButton;
 
     ImageButton clearDrawButton;
-    ImageButton ereaserButton;
+    ImageButton eraserButton;
     ImageButton changeBrushColorButton;
     View changeBrushSizeButton;
+    TextView brushSizeTextView;
     ImageButton textModeButton;
 
     /**
@@ -127,6 +132,7 @@ public class NoteDetailFragment extends Fragment implements View.OnClickListener
             SMALL_BRUSH = 5,
             MEDIUM_BRUSH = 10,
             LARGE_BRUSH = 20;
+    private AlertDialog brushSizeDialog;
 
 
     /**
@@ -266,6 +272,22 @@ public class NoteDetailFragment extends Fragment implements View.OnClickListener
 
             case R.id.draw_refresh:
                 eraseAllDraws();
+                break;
+            case R.id.draw_brush_size:
+                showBrushSizeSelectorDialog();
+                break;
+
+            case R.id.brush_small:
+                changeBrushSize(SMALL_BRUSH);
+                break;
+
+            case R.id.brush_medium:
+                changeBrushSize(MEDIUM_BRUSH);
+                break;
+
+            case R.id.brush_large:
+                changeBrushSize(LARGE_BRUSH);
+                break;
         }
     }
 
@@ -298,6 +320,24 @@ public class NoteDetailFragment extends Fragment implements View.OnClickListener
         rv.setAdapter(adapter);
 
         colorPickerDialog.show();
+    }
+
+    private void showBrushSizeSelectorDialog(){
+
+        AlertDialog.Builder alertDialog = new AlertDialog.Builder(getActivity());
+        View convertView = LayoutInflater.from(getActivity()).inflate(R.layout.brush_size_selector_dialog, null);
+        alertDialog.setView(convertView);
+        alertDialog.setTitle(R.string.choose_brush_size);
+        brushSizeDialog = alertDialog.create();
+        ImageButton mediumBrushButton = (ImageButton) convertView.findViewById(R.id.brush_medium);
+        ImageButton smallBrushButton = (ImageButton) convertView.findViewById(R.id.brush_small);
+        ImageButton largeBrushButton = (ImageButton) convertView.findViewById(R.id.brush_large);
+
+        mediumBrushButton.setOnClickListener(this);
+        smallBrushButton.setOnClickListener(this);
+        largeBrushButton.setOnClickListener(this);
+
+        brushSizeDialog.show();
     }
 
     @Override
@@ -394,15 +434,16 @@ public class NoteDetailFragment extends Fragment implements View.OnClickListener
 
     private void setDrawPanelButtonsOnClick(){
         clearDrawButton = (ImageButton) drawModeMarkupContainer.findViewById(R.id.draw_refresh);
-        ereaserButton = (ImageButton) drawModeMarkupContainer.findViewById(R.id.draw_eraser);
+        eraserButton = (ImageButton) drawModeMarkupContainer.findViewById(R.id.draw_eraser);
         changeBrushSizeButton =  drawModeMarkupContainer.findViewById(R.id.draw_brush_size);
         textModeButton = (ImageButton) drawModeMarkupContainer.findViewById(R.id.draw_format_text);
         changeBrushColorButton = (ImageButton) drawModeMarkupContainer.findViewById(R.id.text_format_color);
+        brushSizeTextView = (TextView) drawModeMarkupContainer.findViewById(R.id.draw_brush_size_text);
 
         textModeButton.setOnClickListener(this);
         clearDrawButton.setOnClickListener(this);
         changeBrushSizeButton.setOnClickListener(this);
-        ereaserButton.setOnClickListener(this);
+        eraserButton.setOnClickListener(this);
         changeBrushColorButton.setOnClickListener(this);
     }
 
@@ -419,6 +460,12 @@ public class NoteDetailFragment extends Fragment implements View.OnClickListener
                 drawModeMarkupContainer.setVisibility(View.VISIBLE);
                 textModeMarkupContainer.setVisibility(View.INVISIBLE);
             }
+            try  {
+                InputMethodManager imm = (InputMethodManager)getActivity().getSystemService(INPUT_METHOD_SERVICE);
+                imm.hideSoftInputFromWindow(getActivity().getCurrentFocus().getWindowToken(), 0);
+            } catch (Exception e) {
+
+            }
         }
     }
 
@@ -426,11 +473,25 @@ public class NoteDetailFragment extends Fragment implements View.OnClickListener
         isPaintMode = !isPaintMode;
         isEraseMode = !isEraseMode;
         if (isEraseMode){
-            ereaserButton.setImageResource(R.drawable.ic_brush_white_24dp);
+            eraserButton.setImageResource(R.drawable.ic_brush_white_24dp);
         }else {
-            ereaserButton.setImageResource(R.drawable.ic_eraser_white_24dp);
+            eraserButton.setImageResource(R.drawable.ic_eraser_white_24dp);
         }
         drawingView.setErase(isEraseMode);
+    }
+
+    public void changeBrushSize(float size) {
+        drawingView.setBrushSize(size);
+        if (brushSizeDialog.isShowing()){
+            brushSizeDialog.dismiss();
+        }
+        if (size <= SMALL_BRUSH){
+            brushSizeTextView.setText(getResources().getString(R.string.small));
+        }else if (size > SMALL_BRUSH && size < LARGE_BRUSH){
+            brushSizeTextView.setText(getResources().getString(R.string.medium));
+        }else if (size >= LARGE_BRUSH){
+            brushSizeTextView.setText(getResources().getString(R.string.large));
+        }
     }
 
     private void eraseAllDraws(){
