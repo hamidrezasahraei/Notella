@@ -5,6 +5,7 @@ import android.arch.persistence.room.ForeignKey;
 import android.arch.persistence.room.Ignore;
 import android.arch.persistence.room.Index;
 import android.arch.persistence.room.PrimaryKey;
+import android.graphics.Bitmap;
 import android.text.Html;
 
 import java.util.Date;
@@ -32,6 +33,7 @@ public class Note implements ListItem {
     private String text;
     private Date creationDate;
     private String parentId;
+    private Bitmap draw;
 
 
 //    @Ignore
@@ -100,5 +102,13 @@ public class Note implements ListItem {
 
     public void setParentId(String parentId) {
         this.parentId = parentId;
+    }
+
+    public Bitmap getDraw() {
+        return draw;
+    }
+
+    public void setDraw(Bitmap draw) {
+        this.draw = draw;
     }
 }

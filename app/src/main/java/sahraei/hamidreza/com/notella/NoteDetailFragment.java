@@ -220,6 +220,7 @@ public class NoteDetailFragment extends Fragment implements View.OnClickListener
             public boolean onTouch(View v, MotionEvent event) {
                 if (isDrawModeOn) {
                     drawingView.onTouchEvent(event);
+                    isTextChanged = true;
                     return true;
                 } else {
                     return false;
@@ -446,6 +447,7 @@ public class NoteDetailFragment extends Fragment implements View.OnClickListener
         mNote.setTitle(noteTitle);
         mNote.setText(htmlText);
         mNote.setCreationDate(new Date());
+        mNote.setDraw(drawingView.getCanvasBitmap());
         new SaveNoteToDB().execute(mNote);
     }
 
@@ -508,6 +510,7 @@ public class NoteDetailFragment extends Fragment implements View.OnClickListener
         titleEditText.setSelection(note.getTitle().length());
         editText.setText(text);
         editTextListenForChanges = true;
+        drawingView.setBitmap(note.getDraw());
 
 
     }

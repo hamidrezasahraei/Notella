@@ -9,6 +9,7 @@ import android.support.v7.widget.RecyclerView;
 import android.text.Html;
 import android.text.Spanned;
 import android.text.TextUtils;
+import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -153,7 +154,7 @@ public class NoteListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 final FolderItemViewHolder folderItemViewHolder = (FolderItemViewHolder) holder;
                 folderItemViewHolder.folder = (Folder)items.get(position);
                 folderItemViewHolder.titleTextView.setText(folderItemViewHolder.folder.getTitle());
-                folderItemViewHolder.descriptionTextView.setText(folderItemViewHolder.folder.getDescription());
+                folderItemViewHolder.descriptionTextView.setVisibility(View.GONE);
 
                 if (mContext instanceof OpenFolderCallBack){
                     folderItemViewHolder.itemView.setOnClickListener(new View.OnClickListener() {

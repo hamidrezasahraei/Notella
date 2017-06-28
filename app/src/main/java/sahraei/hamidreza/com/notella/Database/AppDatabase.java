@@ -17,7 +17,7 @@ import sahraei.hamidreza.com.notella.Model.Note;
 /**
  * Created by hamidrezasahraei on 22/6/2017 AD.
  */
-@Database(entities = {Note.class, Folder.class}, version = 2)
+@Database(entities = {Note.class, Folder.class}, version = 3)
 @TypeConverters({Converter.class})
 public abstract class AppDatabase extends RoomDatabase {
     public abstract NoteDAO noteDAO();

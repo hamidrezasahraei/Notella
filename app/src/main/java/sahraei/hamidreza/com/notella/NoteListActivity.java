@@ -79,11 +79,12 @@ public class NoteListActivity extends AppCompatActivity implements OpenFolderCal
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        toolbar.setTitle(getTitle());
+        toolbar.setTitle("All");
 
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(false);
+            actionBar.setTitle("All");
         }
 
         final FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -159,6 +160,8 @@ public class NoteListActivity extends AppCompatActivity implements OpenFolderCal
         noteListAdapter.addAll(childFolders);
         List<Note> childNotes = AppDatabase.getInstance(this).noteDAO().loadAllByParentId(currentFolderId);
         noteListAdapter.addAll(childNotes);
+
+        registerForContextMenu(recyclerView);
     }
 
     @Override

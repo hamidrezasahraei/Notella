@@ -44,6 +44,7 @@
         android:layout_width="match_parent" />
     <android.support.v7.widget.ViewStubCompat
         android:id="@+id/draw_markup_container"
+        android:layout_below="@id/app_bar"
         android:layout="@layout/note_draw_markup_container"
         android:layout_width="match_parent"
         android:layout_height="48dp" />
