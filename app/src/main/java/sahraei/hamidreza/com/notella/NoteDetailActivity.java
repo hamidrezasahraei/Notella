@@ -25,8 +25,6 @@ public class NoteDetailActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_note_detail);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.detail_toolbar);
-        setSupportActionBar(toolbar);
 
 //        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
 //        fab.setOnClickListener(new View.OnClickListener() {
@@ -37,11 +35,10 @@ public class NoteDetailActivity extends AppCompatActivity {
 //            }
 //        });
 
-        // Show the Up button in the action bar.
-        ActionBar actionBar = getSupportActionBar();
-        if (actionBar != null) {
-            actionBar.setDisplayHomeAsUpEnabled(true);
-        }
+        String noteItemId = getIntent().getStringExtra(NoteDetailFragment.ARG_ITEM_ID);
+        String parentId = getIntent().getStringExtra(NoteDetailFragment.ARG_ITEM_PARENT_ID);;
+
+
 
         // savedInstanceState is non-null when there is fragment state
         // saved from previous configurations of this activity
@@ -59,7 +56,9 @@ public class NoteDetailActivity extends AppCompatActivity {
 //            arguments.putString(NoteDetailFragment.ARG_ITEM_ID,
 //                    getIntent().getStringExtra(NoteDetailFragment.ARG_ITEM_ID));
             arguments.putString(NoteDetailFragment.ARG_ITEM_ID,
-                    "NEW");
+                    noteItemId);
+            arguments.putString(NoteDetailFragment.ARG_ITEM_PARENT_ID,
+                    parentId);
             NoteDetailFragment fragment = new NoteDetailFragment();
             fragment.setArguments(arguments);
             getSupportFragmentManager().beginTransaction()
@@ -71,10 +70,6 @@ public class NoteDetailActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.note_detail_activity_actions, menu);
-
-//        MenuItem searchItem = menu.findItem(R.id.action_search);
-//        SearchView searchView =
-//                (SearchView) MenuItemCompat.getActionView(searchItem);
         return super.onCreateOptionsMenu(menu);
     }
 

@@ -6,6 +6,9 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.util.SortedList;
 import android.support.v7.widget.RecyclerView;
+import android.text.Html;
+import android.text.Spanned;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -50,7 +53,7 @@ public class NoteListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 if (o2 instanceof Folder && o1 instanceof Note)
                     return 1;
                 if (o1 instanceof Note && o2 instanceof Note){
-                    return ((Note) o1).getCreationDate().compareTo(((Note) o2).getCreationDate());
+                    return ((Note) o2).getCreationDate().compareTo(((Note) o1).getCreationDate());
                 }
 
                 return 0;
@@ -119,13 +122,14 @@ public class NoteListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 final NoteItemViewHolder noteItemViewHolder = (NoteItemViewHolder) holder;
                 noteItemViewHolder.note = (Note)items.get(position);
                 noteItemViewHolder.titleTextView.setText(noteItemViewHolder.note.getTitle());
-                noteItemViewHolder.descriptionTextView.setText(noteItemViewHolder.note.getDescription());
+                noteItemViewHolder.descriptionTextView.setText(convertNoteTextToText(noteItemViewHolder.note.getText()).replace("\n"," "));
                 noteItemViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
                         if (isTwoPane){
                             Bundle arguments = new Bundle();
                             arguments.putString(NoteDetailFragment.ARG_ITEM_ID, noteItemViewHolder.note.getId());
+                            arguments.putString(NoteDetailFragment.ARG_ITEM_PARENT_ID, noteItemViewHolder.note.getParentId());
                             NoteDetailFragment fragment = new NoteDetailFragment();
                             fragment.setArguments(arguments);
                             ((AppCompatActivity)mContext).getSupportFragmentManager().beginTransaction()
@@ -133,7 +137,8 @@ public class NoteListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                                     .commit();
                         }else {
                             Intent intent = new Intent(mContext, NoteDetailActivity.class);
-//                            intent.putExtra(NoteDetailFragment.ARG_ITEM_ID, noteItemViewHolder.note.getId());
+                            intent.putExtra(NoteDetailFragment.ARG_ITEM_ID, noteItemViewHolder.note.getId());
+                            intent.putExtra(NoteDetailFragment.ARG_ITEM_PARENT_ID, noteItemViewHolder.note.getParentId());
 
                             mContext.startActivity(intent);
                         }
@@ -249,5 +254,16 @@ public class NoteListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             titleTextView = (TextView) itemView.findViewById(R.id.folder_card_title);
             descriptionTextView = (TextView) itemView.findViewById(R.id.folder_card_desc);
         }
+    }
+
+    @SuppressWarnings("deprecation")
+    private String convertNoteTextToText(String htmlText) {
+        String text;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+            text = Html.fromHtml(htmlText, Html.FROM_HTML_MODE_LEGACY).toString();
+        } else {
+            text = Html.fromHtml(htmlText).toString();
+        }
+        return text;
     }
 }

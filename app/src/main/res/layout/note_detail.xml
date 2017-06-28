@@ -9,8 +9,39 @@
     android:background="@android:color/white"
     tools:context="sahraei.hamidreza.com.notella.NoteDetailActivity">
 
+    <android.support.design.widget.AppBarLayout
+        android:id="@+id/app_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:theme="@style/AppTheme.AppBarOverlay">
+        <android.support.v7.widget.Toolbar
+            android:id="@+id/detail_toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            >
+            <EditText
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/note_title_edittext"
+                android:hint="Note Title..."
+                android:inputType="text"
+                android:textIsSelectable="false"
+                android:maxLength="100"
+                android:layout_marginEnd="16dp"
+                android:layout_marginRight="16dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginLeft="16dp"
+                />
+        </android.support.v7.widget.Toolbar>
 
-    <include android:id="@+id/text_markup_container" layout="@layout/note_text_markup_container"/>
+    </android.support.design.widget.AppBarLayout>
+
+
+
+    <include android:id="@+id/text_markup_container" layout="@layout/note_text_markup_container"
+        android:layout_below="@id/app_bar"
+        android:layout_height="48dp"
+        android:layout_width="match_parent" />
     <android.support.v7.widget.ViewStubCompat
         android:id="@+id/draw_markup_container"
         android:layout="@layout/note_draw_markup_container"
@@ -32,6 +63,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:gravity="top"
+        android:hint="Write your Note here..."
         android:inputType="textMultiLine|textNoSuggestions"
         android:background="@android:color/transparent"
         android:scrollbars="vertical"

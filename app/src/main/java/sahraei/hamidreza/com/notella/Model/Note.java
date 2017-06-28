@@ -34,10 +34,10 @@ public class Note implements ListItem {
     private String parentId;
 
 
-    @Ignore
-    public Note(String title, String text) {
-        this(title, text, null);
-    }
+//    @Ignore
+//    public Note(String title, String text) {
+//        this(title, text, null);
+//    }
 
     @Ignore
     public Note(String title, String text, String parentId) {

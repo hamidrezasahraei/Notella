@@ -5,10 +5,14 @@ import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.support.v7.widget.ViewStubCompat;
 import android.text.Editable;
 import android.text.Html;
@@ -29,6 +33,9 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import java.util.Date;
 
 import sahraei.hamidreza.com.notella.Adapter.ColorPickerGridRecyclerAdapter;
 import sahraei.hamidreza.com.notella.CustomView.DrawingView;
@@ -57,12 +64,17 @@ public class NoteDetailFragment extends Fragment implements View.OnClickListener
     /**
      * The note content this fragment is presenting.
      */
-    private Note mItem;
+    private Note mNote;
 
     /**
      * The edittext which user writes his notes.
      */
     private EditText editText;
+
+    /**
+     * Title of note
+     */
+    private EditText titleEditText;
 
     /**
      * Used for keeping user text and store it as HTML in DB
@@ -135,6 +147,13 @@ public class NoteDetailFragment extends Fragment implements View.OnClickListener
     private AlertDialog brushSizeDialog;
 
 
+    Handler saveIntervalHandler = new Handler();
+    int delay = 5000; //15 seconds
+    Runnable saveRunnable;
+    boolean isTextChanged = false;
+    boolean editTextListenForChanges = true;
+
+
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
@@ -146,20 +165,6 @@ public class NoteDetailFragment extends Fragment implements View.OnClickListener
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
-
-
-        if (getArguments().containsKey(ARG_ITEM_ID)) {
-            noteId = getArguments().getString(ARG_ITEM_ID);
-            if (noteId.equals(NEW_NOTE_VALUE)){
-                //TODO:new note
-            }else {
-                //TODO:fetch from db
-            }
-        }
-
-        if (getArguments().containsKey(ARG_ITEM_PARENT_ID)) {
-            parentId = getArguments().getString(ARG_ITEM_PARENT_ID);
-        }
     }
 
     @Override
@@ -167,7 +172,18 @@ public class NoteDetailFragment extends Fragment implements View.OnClickListener
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.note_detail, container, false);
 
+        Toolbar toolbar = (Toolbar) rootView.findViewById(R.id.detail_toolbar);
+        ((AppCompatActivity) getActivity()).setSupportActionBar(toolbar);
+
+        // Show the Up button in the action bar.
+        ActionBar actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.setDisplayHomeAsUpEnabled(true);
+        }
+
         editText = (EditText) rootView.findViewById(R.id.note_edittext);
+        titleEditText = (EditText) toolbar.findViewById(R.id.note_title_edittext);
+
         drawModeMarkupContainerViewStub = (ViewStubCompat) rootView.findViewById(R.id.draw_markup_container);
         textModeMarkupContainer = rootView.findViewById(R.id.text_markup_container);
 
@@ -197,23 +213,6 @@ public class NoteDetailFragment extends Fragment implements View.OnClickListener
 
         noteTextSpannable = editText.getText();
 
-        editText.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
-            }
-
-            @Override
-            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
-            }
-
-            @Override
-            public void afterTextChanged(Editable editable) {
-                System.out.println(editable.toString());
-            }
-        });
-
         // Handling drawingView's onTouchListener via EditText onTouchListener
         editText.setOnTouchListener(new View.OnTouchListener() {
 
@@ -228,20 +227,95 @@ public class NoteDetailFragment extends Fragment implements View.OnClickListener
             }
         });
 
+        return rootView;
+    }
 
-        // Show the dummy content as text in a TextView.
-        if (mItem != null) {
-//            ((TextView) rootView.findViewById(R.id.note_detail)).setText(mItem.details);
+    @Override
+    public void onStart() {
+        if (getArguments().containsKey(ARG_ITEM_PARENT_ID)) {
+            parentId = getArguments().getString(ARG_ITEM_PARENT_ID);
         }
 
-        return rootView;
+        if (getArguments().containsKey(ARG_ITEM_ID)) {
+            noteId = getArguments().getString(ARG_ITEM_ID);
+            if (noteId.equals(NEW_NOTE_VALUE)) {
+                //TODO:new note
+                mNote = new Note("", "", parentId);
+            } else {
+                //TODO:fetch from db
+                new GetNoteFromDB().execute(noteId);
+            }
+        }
+
+        editText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+                if(editTextListenForChanges) {
+                    if (!isTextChanged)
+                        isTextChanged = true;
+                }
+            }
+        });
+
+        titleEditText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                System.out.println(charSequence);
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+                if(editTextListenForChanges) {
+                    if (!isTextChanged)
+                        isTextChanged = true;
+                }
+            }
+        });
+
+        //start handler as fragment become visible
+        saveIntervalHandler.postDelayed(new Runnable() {
+            public void run() {
+                //do something
+                if (isTextChanged) {
+                    saveNote();
+                    Toast.makeText(getContext(), R.string.saved_impression, Toast.LENGTH_SHORT).show();
+                    isTextChanged = false;
+                }
+
+                saveRunnable = this;
+                saveIntervalHandler.postDelayed(saveRunnable, delay);
+            }
+        }, delay);
+
+        super.onStart();
+    }
+
+    @Override
+    public void onPause() {
+        saveIntervalHandler.removeCallbacks(saveRunnable); //stop handler when activity not visible
+        super.onPause();
     }
 
 
     @Override
     public void onClick(View view) {
         int id = view.getId();
-        switch (id){
+        switch (id) {
             case R.id.text_format_bold:
                 formatText(new StyleSpan(Typeface.BOLD));
                 break;
@@ -256,7 +330,7 @@ public class NoteDetailFragment extends Fragment implements View.OnClickListener
                 break;
 
             case R.id.text_format_brush:
-                if (drawModeMarkupContainer == null){
+                if (drawModeMarkupContainer == null) {
                     drawModeMarkupContainer = drawModeMarkupContainerViewStub.inflate();
                 }
                 setDrawPanelButtonsOnClick();
@@ -291,7 +365,7 @@ public class NoteDetailFragment extends Fragment implements View.OnClickListener
         }
     }
 
-    private void formatText(ParcelableSpan styleSpan){
+    private void formatText(ParcelableSpan styleSpan) {
         noteTextSpannable = editText.getText();
         int posStart = editText.getSelectionStart();
         int posEnd = editText.getSelectionEnd();
@@ -300,7 +374,7 @@ public class NoteDetailFragment extends Fragment implements View.OnClickListener
         editText.setSelection(editText.getText().length());
     }
 
-    private void showColorPickerDialog(){
+    private void showColorPickerDialog() {
         int colorsColumnNumber = 4;
 
         selectedTextStartPos = editText.getSelectionStart();
@@ -322,7 +396,7 @@ public class NoteDetailFragment extends Fragment implements View.OnClickListener
         colorPickerDialog.show();
     }
 
-    private void showBrushSizeSelectorDialog(){
+    private void showBrushSizeSelectorDialog() {
 
         AlertDialog.Builder alertDialog = new AlertDialog.Builder(getActivity());
         View convertView = LayoutInflater.from(getActivity()).inflate(R.layout.brush_size_selector_dialog, null);
@@ -349,7 +423,7 @@ public class NoteDetailFragment extends Fragment implements View.OnClickListener
             noteTextSpannable.setSpan(new ForegroundColorSpan(colorCode), selectedTextStartPos, selectedTextEndPos, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
             editText.setText(noteTextSpannable);
             editText.setSelection(editText.getText().length());
-        }else if (isDrawModeOn){
+        } else if (isDrawModeOn) {
             drawingView.setPaintColor(colorCode);
             changeBrushColorButton.setColorFilter(colorCode);
         }
@@ -357,19 +431,26 @@ public class NoteDetailFragment extends Fragment implements View.OnClickListener
     }
 
     @SuppressWarnings("deprecation")
-    public void saveNote(){
+    public void saveNote() {
+        noteTitle = titleEditText.getText().toString();
+        noteTextSpannable = editText.getText();
+        if (noteTitle == null || noteTitle.equals("")) {
+            noteTitle = "New Note";
+        }
         String htmlText;
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
             htmlText = Html.toHtml(noteTextSpannable, Html.FROM_HTML_MODE_LEGACY);
         } else {
             htmlText = Html.toHtml(noteTextSpannable);
         }
-        Note note = new Note(noteTitle, htmlText);
-        AppDatabase.getInstance(getContext()).noteDAO().insertAll(note);
+        mNote.setTitle(noteTitle);
+        mNote.setText(htmlText);
+        mNote.setCreationDate(new Date());
+        new SaveNoteToDB().execute(mNote);
     }
 
 
-    public class SaveNoteToDB extends AsyncTask<Note, Integer, Void>{
+    public class SaveNoteToDB extends AsyncTask<Note, Integer, Void> {
 
         @Override
         protected Void doInBackground(Note... notes) {
@@ -390,7 +471,7 @@ public class NoteDetailFragment extends Fragment implements View.OnClickListener
         }
     }
 
-    public class GetNoteFromDB extends AsyncTask<String,Integer,Note>{
+    public class GetNoteFromDB extends AsyncTask<String, Integer, Note> {
 
         @Override
         protected Note doInBackground(String... strings) {
@@ -409,33 +490,39 @@ public class NoteDetailFragment extends Fragment implements View.OnClickListener
         protected void onPostExecute(Note note) {
             super.onPostExecute(note);
             hideProgressbar();
+            mNote = note;
             setNoteToView(note);
         }
     }
 
     @SuppressWarnings("deprecation")
-    private void setNoteToView(Note note){
+    private void setNoteToView(Note note) {
         Spanned text;
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
             text = Html.fromHtml(note.getText(), Html.FROM_HTML_MODE_LEGACY);
         } else {
             text = Html.fromHtml(note.getText());
         }
+        editTextListenForChanges = false;
+        titleEditText.setText(note.getTitle());
+        titleEditText.setSelection(note.getTitle().length());
         editText.setText(text);
+        editTextListenForChanges = true;
+
 
     }
 
-    private void checkViewStubInflated(ViewStubCompat viewStubCompat, View inflatedView){
-        if (viewStubCompat.getParent() != null){
+    private void checkViewStubInflated(ViewStubCompat viewStubCompat, View inflatedView) {
+        if (viewStubCompat.getParent() != null) {
             inflatedView = viewStubCompat.inflate();
         }
 
     }
 
-    private void setDrawPanelButtonsOnClick(){
+    private void setDrawPanelButtonsOnClick() {
         clearDrawButton = (ImageButton) drawModeMarkupContainer.findViewById(R.id.draw_refresh);
         eraserButton = (ImageButton) drawModeMarkupContainer.findViewById(R.id.draw_eraser);
-        changeBrushSizeButton =  drawModeMarkupContainer.findViewById(R.id.draw_brush_size);
+        changeBrushSizeButton = drawModeMarkupContainer.findViewById(R.id.draw_brush_size);
         textModeButton = (ImageButton) drawModeMarkupContainer.findViewById(R.id.draw_format_text);
         changeBrushColorButton = (ImageButton) drawModeMarkupContainer.findViewById(R.id.text_format_color);
         brushSizeTextView = (TextView) drawModeMarkupContainer.findViewById(R.id.draw_brush_size_text);
@@ -447,21 +534,21 @@ public class NoteDetailFragment extends Fragment implements View.OnClickListener
         changeBrushColorButton.setOnClickListener(this);
     }
 
-    private void toggleTextDrawMode(){
+    private void toggleTextDrawMode() {
         isTextModeOn = !isTextModeOn;
         isDrawModeOn = !isDrawModeOn;
-        if (isTextModeOn){
-            if (drawModeMarkupContainer.getVisibility() == View.VISIBLE){
+        if (isTextModeOn) {
+            if (drawModeMarkupContainer.getVisibility() == View.VISIBLE) {
                 drawModeMarkupContainer.setVisibility(View.INVISIBLE);
                 textModeMarkupContainer.setVisibility(View.VISIBLE);
             }
-        }else {
-            if (drawModeMarkupContainer.getVisibility() != View.VISIBLE){
+        } else {
+            if (drawModeMarkupContainer.getVisibility() != View.VISIBLE) {
                 drawModeMarkupContainer.setVisibility(View.VISIBLE);
                 textModeMarkupContainer.setVisibility(View.INVISIBLE);
             }
-            try  {
-                InputMethodManager imm = (InputMethodManager)getActivity().getSystemService(INPUT_METHOD_SERVICE);
+            try {
+                InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(INPUT_METHOD_SERVICE);
                 imm.hideSoftInputFromWindow(getActivity().getCurrentFocus().getWindowToken(), 0);
             } catch (Exception e) {
 
@@ -469,12 +556,12 @@ public class NoteDetailFragment extends Fragment implements View.OnClickListener
         }
     }
 
-    private void toggleEraserBrush(){
+    private void toggleEraserBrush() {
         isPaintMode = !isPaintMode;
         isEraseMode = !isEraseMode;
-        if (isEraseMode){
+        if (isEraseMode) {
             eraserButton.setImageResource(R.drawable.ic_brush_white_24dp);
-        }else {
+        } else {
             eraserButton.setImageResource(R.drawable.ic_eraser_white_24dp);
         }
         drawingView.setErase(isEraseMode);
@@ -482,27 +569,28 @@ public class NoteDetailFragment extends Fragment implements View.OnClickListener
 
     public void changeBrushSize(float size) {
         drawingView.setBrushSize(size);
-        if (brushSizeDialog.isShowing()){
+        if (brushSizeDialog.isShowing()) {
             brushSizeDialog.dismiss();
         }
-        if (size <= SMALL_BRUSH){
+        if (size <= SMALL_BRUSH) {
             brushSizeTextView.setText(getResources().getString(R.string.small));
-        }else if (size > SMALL_BRUSH && size < LARGE_BRUSH){
+        } else if (size > SMALL_BRUSH && size < LARGE_BRUSH) {
             brushSizeTextView.setText(getResources().getString(R.string.medium));
-        }else if (size >= LARGE_BRUSH){
+        } else if (size >= LARGE_BRUSH) {
             brushSizeTextView.setText(getResources().getString(R.string.large));
         }
     }
 
-    private void eraseAllDraws(){
+    private void eraseAllDraws() {
         drawingView.startNew();
     }
 
-    private void showProgressbar(){
+    private void showProgressbar() {
         progressBar.setVisibility(View.VISIBLE);
     }
 
-    private void hideProgressbar(){
+    private void hideProgressbar() {
         progressBar.setVisibility(View.GONE);
     }
+
 }

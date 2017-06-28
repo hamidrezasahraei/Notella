@@ -50,6 +50,8 @@ public class NoteListActivity extends AppCompatActivity implements OpenFolderCal
 
     Folder rootFolder;
 
+    String currentFolderId;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -85,6 +87,7 @@ public class NoteListActivity extends AppCompatActivity implements OpenFolderCal
                 if (mTwoPane){
                     Bundle arguments = new Bundle();
                     arguments.putString(NoteDetailFragment.ARG_ITEM_ID, NoteDetailFragment.NEW_NOTE_VALUE);
+                    arguments.putString(NoteDetailFragment.ARG_ITEM_PARENT_ID, currentFolderId);
                     NoteDetailFragment fragment = new NoteDetailFragment();
                     fragment.setArguments(arguments);
                     getSupportFragmentManager().beginTransaction()
@@ -93,17 +96,9 @@ public class NoteListActivity extends AppCompatActivity implements OpenFolderCal
                 }else {
                     Intent intent = new Intent(getApplicationContext(), NoteDetailActivity.class);
                     intent.putExtra(NoteDetailFragment.ARG_ITEM_ID, NoteDetailFragment.NEW_NOTE_VALUE);
+                    intent.putExtra(NoteDetailFragment.ARG_ITEM_PARENT_ID, currentFolderId);
                     startActivity(intent);
                 }
-            }
-        });
-
-        AsyncTask.execute(new Runnable() {
-            @Override
-            public void run() {
-                Folder folder = AppDatabase.getInstance(getApplicationContext()).folderDAO().findRootDirectory();
-                Folder folder1 = new Folder("Salam", folder.getId());
-                AppDatabase.getInstance(getApplicationContext()).folderDAO().insertAll(folder1);
             }
         });
 
@@ -133,10 +128,11 @@ public class NoteListActivity extends AppCompatActivity implements OpenFolderCal
         NoteListAdapter noteListAdapter = new NoteListAdapter(this, mTwoPane);
         recyclerView.setAdapter(noteListAdapter);
         Folder folder = AppDatabase.getInstance(this).folderDAO().findRootDirectory();
-        if (folder != null){
-            List<Folder> childFolders = AppDatabase.getInstance(this).folderDAO().findChildFolder(folder.getId());
-            noteListAdapter.addAll(childFolders);
-        }
+        currentFolderId = folder.getId();
+        List<Folder> childFolders = AppDatabase.getInstance(this).folderDAO().findChildFolder(folder.getId());
+        noteListAdapter.addAll(childFolders);
+        List<Note> childNotes = AppDatabase.getInstance(this).noteDAO().loadAllByParentId(currentFolderId);
+        noteListAdapter.addAll(childNotes);
     }
 
     @Override

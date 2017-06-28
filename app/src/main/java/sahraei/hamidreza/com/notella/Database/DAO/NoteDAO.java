@@ -22,8 +22,11 @@ public interface NoteDAO {
     @Query("SELECT * FROM notes WHERE id IN (:noteIds)")
     List<Note> loadAllByIds(String[] noteIds);
 
-    @Query("SELECT * FROM notes WHERE id = (:noteIds)")
-    Note loadNoteById(String noteIds);
+    @Query("SELECT * FROM notes WHERE id = (:noteId)")
+    Note loadNoteById(String noteId);
+
+    @Query("SELECT * FROM notes WHERE parentId = (:parentId)")
+    List<Note> loadAllByParentId(String parentId);
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insertAll(Note... notes);
