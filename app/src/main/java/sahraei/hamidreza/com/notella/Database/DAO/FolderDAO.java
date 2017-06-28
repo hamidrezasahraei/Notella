@@ -22,7 +22,10 @@ public interface FolderDAO {
     List<Folder> getAll();
 
     @Query("SELECT * FROM folders WHERE id IN (:folderIds)")
-    List<Folder> loadAllByIds(int[] folderIds);
+    List<Folder> loadAllByIds(String folderIds);
+
+    @Query("SELECT * FROM folders WHERE id = (:folderId)")
+    Folder loadById(String folderId);
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insertAll(Folder... folders);

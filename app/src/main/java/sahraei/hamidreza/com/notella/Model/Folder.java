@@ -6,6 +6,7 @@ import android.arch.persistence.room.Ignore;
 import android.arch.persistence.room.Index;
 import android.arch.persistence.room.PrimaryKey;
 
+import java.util.Date;
 import java.util.UUID;
 
 import sahraei.hamidreza.com.notella.Adapter.NoteListAdapter;
@@ -29,6 +30,7 @@ public class Folder implements ListItem{
     public final String id;
     public final String title;
     public final String parentId;
+    public final Date creationDate;
 
     @Ignore
     public Folder(String title) {
@@ -37,12 +39,13 @@ public class Folder implements ListItem{
 
     @Ignore
     public Folder(String title, String parentId) {
-        this(UUID.randomUUID().toString(), title, parentId);
+        this(UUID.randomUUID().toString(), title, parentId, new Date());
     }
 
-    public Folder(String id, String title, String parentId) {
+    public Folder(String id, String title, String parentId, Date creationDate) {
         this.id=id;
         this.title=title;
+        this.creationDate=creationDate;
         this.parentId=parentId;
     }
 
@@ -66,5 +69,9 @@ public class Folder implements ListItem{
 
     public String getParentId() {
         return parentId;
+    }
+
+    public Date getCreationDate() {
+        return creationDate;
     }
 }

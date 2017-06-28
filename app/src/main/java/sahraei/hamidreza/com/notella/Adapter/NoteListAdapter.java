@@ -40,20 +40,23 @@ public class NoteListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     public static final int NOTE_ITEM_TYPE = 0;
     public static final int FOLDER_ITEM_TYPE = 1;
 
-    public NoteListAdapter(Context context) {
-        this(context, false);
-    }
-
     public NoteListAdapter(Context context, boolean isTwoPane) {
         this.mContext = context;
         this.isTwoPane = isTwoPane;
         this.items = new SortedList<ListItem>(ListItem.class, new SortedList.Callback<ListItem>() {
             @Override
             public int compare(ListItem o1, ListItem o2) {
-                if (o2 instanceof Folder && o1 instanceof Note)
+                if (o2 instanceof Folder && o1 instanceof Note) {
                     return 1;
+                }
+                if (o1 instanceof Folder && o2 instanceof Note) {
+                    return -1;
+                }
                 if (o1 instanceof Note && o2 instanceof Note){
                     return ((Note) o2).getCreationDate().compareTo(((Note) o1).getCreationDate());
+                }
+                if (o1 instanceof Folder && o2 instanceof Folder){
+                    return ((Folder) o2).getCreationDate().compareTo(((Folder) o1).getCreationDate());
                 }
 
                 return 0;

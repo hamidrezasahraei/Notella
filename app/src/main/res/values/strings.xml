@@ -9,4 +9,7 @@
     <string name="medium">Medium</string>
     <string name="large">Large</string>
     <string name="saved_impression">Saved!</string>
+    <string name="Submit">OK</string>
+    <string name="cancel">Cancel</string>
+    <string name="folder_title">Folder Title:</string>
 </resources>

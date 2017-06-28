@@ -1,20 +1,28 @@
 package sahraei.hamidreza.com.notella;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.v4.app.NavUtils;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.text.InputType;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.EditText;
 import android.widget.TextView;
 
 
@@ -27,6 +35,7 @@ import sahraei.hamidreza.com.notella.Model.Note;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Stack;
 
 /**
  * An activity representing a list of Note. This activity
@@ -51,6 +60,13 @@ public class NoteListActivity extends AppCompatActivity implements OpenFolderCal
     Folder rootFolder;
 
     String currentFolderId;
+    String folderName;
+
+    NoteListAdapter noteListAdapter;
+
+    Stack<String> historyFolderStack = new Stack<>();
+
+    MenuItem backButtonItem;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,6 +80,11 @@ public class NoteListActivity extends AppCompatActivity implements OpenFolderCal
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         toolbar.setTitle(getTitle());
+
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.setDisplayHomeAsUpEnabled(false);
+        }
 
         final FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
 
@@ -84,7 +105,7 @@ public class NoteListActivity extends AppCompatActivity implements OpenFolderCal
             @Override
             public void onClick(View view) {
                 //TODO: ADD Note
-                if (mTwoPane){
+                if (mTwoPane) {
                     Bundle arguments = new Bundle();
                     arguments.putString(NoteDetailFragment.ARG_ITEM_ID, NoteDetailFragment.NEW_NOTE_VALUE);
                     arguments.putString(NoteDetailFragment.ARG_ITEM_PARENT_ID, currentFolderId);
@@ -93,7 +114,7 @@ public class NoteListActivity extends AppCompatActivity implements OpenFolderCal
                     getSupportFragmentManager().beginTransaction()
                             .replace(R.id.note_detail_container, fragment)
                             .commit();
-                }else {
+                } else {
                     Intent intent = new Intent(getApplicationContext(), NoteDetailActivity.class);
                     intent.putExtra(NoteDetailFragment.ARG_ITEM_ID, NoteDetailFragment.NEW_NOTE_VALUE);
                     intent.putExtra(NoteDetailFragment.ARG_ITEM_PARENT_ID, currentFolderId);
@@ -112,7 +133,7 @@ public class NoteListActivity extends AppCompatActivity implements OpenFolderCal
                 }
             });
             prefs.edit().putBoolean("firstrun", false).commit();
-        }else {
+        } else {
             AsyncTask.execute(new Runnable() {
                 @Override
                 public void run() {
@@ -124,8 +145,13 @@ public class NoteListActivity extends AppCompatActivity implements OpenFolderCal
 
     }
 
+    public void onResume(){
+        super.onResume();
+
+    }
+
     private void setupRecyclerView(@NonNull RecyclerView recyclerView) {
-        NoteListAdapter noteListAdapter = new NoteListAdapter(this, mTwoPane);
+        noteListAdapter = new NoteListAdapter(this, mTwoPane);
         recyclerView.setAdapter(noteListAdapter);
         Folder folder = AppDatabase.getInstance(this).folderDAO().findRootDirectory();
         currentFolderId = folder.getId();
@@ -136,24 +162,117 @@ public class NoteListActivity extends AppCompatActivity implements OpenFolderCal
     }
 
     @Override
-    public void openFolder(String folderId) {
-
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.note_list_activity_actions, menu);
+        backButtonItem = menu.findItem(android.R.id.home);
+        return super.onCreateOptionsMenu(menu);
     }
 
-//    public class FindChildFolders extends AsyncTask<Void, Integer, List<Folder>>{
-//
-//        @Override
-//        protected List<Folder> doInBackground(String... folderId) {
-//            String rootId = folderId[0];
-//            return AppDatabase.getInstance(getApplicationContext()).folderDAO().findChildFolder(rootId);
-//        }
-//
-//        @Override
-//        protected void onPostExecute(List<Folder> folders) {
-//            super.onPostExecute(folders);
-//
-//        }
-//    }
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+
+        if (id == android.R.id.home) {
+            if (historyFolderStack.size() != 0) {
+                String parentId = historyFolderStack.pop();
+                currentFolderId = parentId;
+                new GetFolderSetTitle().execute(currentFolderId);
+                if (historyFolderStack.size() == 0){
+                    getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+                }
+                new GetFolderChild().execute(parentId);
+                return true;
+            }else {
+                return false;
+            }
+        }
+        if (id == R.id.action_new_folder) {
+            showCreateFolderDialog();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void showCreateFolderDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(R.string.folder_title);
+        final EditText input = new EditText(this);
+        input.setInputType(InputType.TYPE_TEXT_VARIATION_PERSON_NAME);
+        builder.setView(input);
+        builder.setPositiveButton(R.string.Submit, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                folderName = input.getText().toString();
+                createFolder(currentFolderId, folderName);
+            }
+        });
+        builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+
+        builder.show();
+    }
+
+    private void createFolder(String parentId, String title){
+        Folder folder = new Folder(title, parentId);
+        new CreateFolder().execute(folder);
+    }
+
+    @Override
+    public void openFolder(String folderId) {
+        historyFolderStack.push(currentFolderId);
+        currentFolderId = folderId;
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        new GetFolderChild().execute(folderId);
+        new GetFolderSetTitle().execute(folderId);
+    }
+
+    public class CreateFolder extends AsyncTask<Folder, Void, Folder>{
+
+        @Override
+        protected Folder doInBackground(Folder... folders) {
+            AppDatabase.getInstance(getApplicationContext()).folderDAO().insertAll(folders[0]);
+            return folders[0];
+        }
+
+        @Override
+        protected void onPostExecute(Folder folder) {
+            super.onPostExecute(folder);
+            noteListAdapter.add(folder);
+        }
+    }
+
+    public class GetFolderChild extends AsyncTask<String, Void, List<Folder>>{
+
+        @Override
+        protected List<Folder> doInBackground(String... ids) {
+            return AppDatabase.getInstance(getApplicationContext()).folderDAO().findChildFolder(ids[0]);
+        }
+
+        @Override
+        protected void onPostExecute(List<Folder> folders) {
+            super.onPostExecute(folders);
+            noteListAdapter.clear();
+            noteListAdapter.addAll(folders);
+        }
+    }
+
+    public class GetFolderSetTitle extends AsyncTask<String, Void, Folder>{
+
+        @Override
+        protected Folder doInBackground(String... id) {
+            return AppDatabase.getInstance(getApplicationContext()).folderDAO().loadById(id[0]);
+        }
+
+        @Override
+        protected void onPostExecute(Folder folder) {
+            super.onPostExecute(folder);
+            getSupportActionBar().setTitle(folder.getTitle());
+        }
+    }
 
 
 }
