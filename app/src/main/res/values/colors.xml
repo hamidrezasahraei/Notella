@@ -8,4 +8,7 @@
     <color name="colorTextPrimary">#212121</color>
     <color name="colorTextSecondary">#757575</color>
     <color name="colorDivider">#BDBDBD</color>
+
+    <color name="text_markup_toolbar">#607D8B</color>
+    <color name="draw_markup_toolbar">#795548</color>
 </resources>

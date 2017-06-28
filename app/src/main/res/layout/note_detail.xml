@@ -40,14 +40,14 @@
 
     <include android:id="@+id/text_markup_container" layout="@layout/note_text_markup_container"
         android:layout_below="@id/app_bar"
-        android:layout_height="48dp"
+        android:layout_height="@dimen/markup_toolbar_height"
         android:layout_width="match_parent" />
     <android.support.v7.widget.ViewStubCompat
         android:id="@+id/draw_markup_container"
         android:layout_below="@id/app_bar"
         android:layout="@layout/note_draw_markup_container"
         android:layout_width="match_parent"
-        android:layout_height="48dp" />
+        android:layout_height="@dimen/markup_toolbar_height" />
 
     <sahraei.hamidreza.com.notella.CustomView.DrawingView
         android:id="@+id/drawing_view"
@@ -64,11 +64,10 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:gravity="top"
-        android:hint="Write your Note here..."
         android:inputType="textMultiLine|textNoSuggestions"
         android:background="@android:color/transparent"
         android:scrollbars="vertical"
-        android:padding="16dp"
+        android:padding="@dimen/note_edittext_padding"
         tools:context="sahraei.hamidreza.com.notella.NoteDetailFragment" />
 
     <android.support.design.widget.FloatingActionButton

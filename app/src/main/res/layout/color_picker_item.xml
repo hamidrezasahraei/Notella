@@ -6,8 +6,8 @@
     >
     <View
         android:id="@+id/color_picker_circle"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
+        android:layout_width="@dimen/color_picker_circle_size"
+        android:layout_height="@dimen/color_picker_circle_size"
         android:background="@drawable/color_picker_circle_item"
         />
 </FrameLayout>

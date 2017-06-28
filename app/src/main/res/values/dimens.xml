@@ -12,4 +12,9 @@
     <dimen name="card_height">72dp</dimen>
     <dimen name="card_padding">8dp</dimen>
     <dimen name="card_image_size">32dp</dimen>
+
+    <dimen name="markup_toolbar_height">48dp</dimen>
+    <dimen name="note_edittext_padding">16dp</dimen>
+
+    <dimen name="color_picker_circle_size">48dp</dimen>
 </resources>

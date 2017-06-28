@@ -7,7 +7,7 @@
     android:layout_alignParentLeft="true"
     android:layout_alignParentStart="true"
     android:layout_alignParentTop="true"
-    android:background="#795548"
+    android:background="@color/draw_markup_toolbar"
     android:gravity="center_vertical"
     android:orientation="horizontal">
 

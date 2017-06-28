@@ -150,7 +150,7 @@ public class NoteDetailFragment extends Fragment implements View.OnClickListener
     Handler saveIntervalHandler = new Handler();
     int delay = 5000; //15 seconds
     Runnable saveRunnable;
-    boolean isTextChanged = false;
+    boolean hasUnsavedChanges = false;
     boolean editTextListenForChanges = true;
 
 
@@ -220,7 +220,7 @@ public class NoteDetailFragment extends Fragment implements View.OnClickListener
             public boolean onTouch(View v, MotionEvent event) {
                 if (isDrawModeOn) {
                     drawingView.onTouchEvent(event);
-                    isTextChanged = true;
+                    hasUnsavedChanges = true;
                     return true;
                 } else {
                     return false;
@@ -262,8 +262,8 @@ public class NoteDetailFragment extends Fragment implements View.OnClickListener
             @Override
             public void afterTextChanged(Editable editable) {
                 if(editTextListenForChanges) {
-                    if (!isTextChanged)
-                        isTextChanged = true;
+                    if (!hasUnsavedChanges)
+                        hasUnsavedChanges = true;
                 }
             }
         });
@@ -282,8 +282,8 @@ public class NoteDetailFragment extends Fragment implements View.OnClickListener
             @Override
             public void afterTextChanged(Editable editable) {
                 if(editTextListenForChanges) {
-                    if (!isTextChanged)
-                        isTextChanged = true;
+                    if (!hasUnsavedChanges)
+                        hasUnsavedChanges = true;
                 }
             }
         });
@@ -292,10 +292,10 @@ public class NoteDetailFragment extends Fragment implements View.OnClickListener
         saveIntervalHandler.postDelayed(new Runnable() {
             public void run() {
                 //do something
-                if (isTextChanged) {
+                if (hasUnsavedChanges) {
                     saveNote();
                     Toast.makeText(getContext(), R.string.saved_impression, Toast.LENGTH_SHORT).show();
-                    isTextChanged = false;
+                    hasUnsavedChanges = false;
                 }
 
                 saveRunnable = this;
@@ -347,6 +347,7 @@ public class NoteDetailFragment extends Fragment implements View.OnClickListener
 
             case R.id.draw_refresh:
                 eraseAllDraws();
+                hasUnsavedChanges = true;
                 break;
             case R.id.draw_brush_size:
                 showBrushSizeSelectorDialog();
