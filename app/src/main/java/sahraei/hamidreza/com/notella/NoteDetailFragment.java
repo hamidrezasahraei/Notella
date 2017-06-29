@@ -24,6 +24,8 @@ import android.text.style.ForegroundColorSpan;
 import android.text.style.StrikethroughSpan;
 import android.text.style.StyleSpan;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -240,10 +242,10 @@ public class NoteDetailFragment extends Fragment implements View.OnClickListener
         if (getArguments().containsKey(ARG_ITEM_ID)) {
             noteId = getArguments().getString(ARG_ITEM_ID);
             if (noteId.equals(NEW_NOTE_VALUE)) {
-                //TODO:new note
+                //Make a new note
                 mNote = new Note("", "", parentId);
             } else {
-                //TODO:fetch from db
+                //Load existing note from database and show it for editing
                 new GetNoteFromDB().execute(noteId);
             }
         }
@@ -288,7 +290,9 @@ public class NoteDetailFragment extends Fragment implements View.OnClickListener
             }
         });
 
-        //start handler as fragment become visible
+        /**
+         * This handler is for auto saving, every 'delay' seconds will save the note if a it has a change
+         */
         saveIntervalHandler.postDelayed(new Runnable() {
             public void run() {
                 //do something
@@ -367,6 +371,11 @@ public class NoteDetailFragment extends Fragment implements View.OnClickListener
         }
     }
 
+    /**
+     * This method will give style to a text such as changing color, making bold, italic and ...
+     * It works with 'edittext' defined in this activity.
+     * @param styleSpan
+     */
     private void formatText(ParcelableSpan styleSpan) {
         noteTextSpannable = editText.getText();
         int posStart = editText.getSelectionStart();
@@ -375,6 +384,12 @@ public class NoteDetailFragment extends Fragment implements View.OnClickListener
         editText.setText(noteTextSpannable);
         editText.setSelection(editText.getText().length());
     }
+
+    /**
+     * This method is show a a dialog with a list of colors in it and user can
+     * select one of them and with the help of a callback the fragment will find out and use
+     * formattext method or in drawing mode: drawingView.setColor() in order to change color
+     */
 
     private void showColorPickerDialog() {
         int colorsColumnNumber = 4;
@@ -398,6 +413,10 @@ public class NoteDetailFragment extends Fragment implements View.OnClickListener
         colorPickerDialog.show();
     }
 
+    /**
+     * This method shows a dialog with three brush size in it and user
+     * can select a size for brush in drawing mode
+     */
     private void showBrushSizeSelectorDialog() {
 
         AlertDialog.Builder alertDialog = new AlertDialog.Builder(getActivity());
@@ -416,8 +435,13 @@ public class NoteDetailFragment extends Fragment implements View.OnClickListener
         brushSizeDialog.show();
     }
 
+    /**
+     * This is a callback method for color picker recyclerview which hold colors
+     * We find the selected color with position parameter and select the color from the array.
+     * @param position
+     */
     @Override
-    public void onColorClick(View view, int position) {
+    public void onColorClick(int position) {
         int colorCode = Color.parseColor(colors[position]);
 
         if (isTextModeOn) {

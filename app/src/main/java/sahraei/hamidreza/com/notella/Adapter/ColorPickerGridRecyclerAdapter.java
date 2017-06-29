@@ -19,7 +19,6 @@ public class ColorPickerGridRecyclerAdapter extends RecyclerView.Adapter<ColorPi
     private String[] mData;
     private LayoutInflater mInflater;
     private ColorClickListener mColorClickListener;
-    private int lastCheckedPosition = -1;
 
     // data is passed into the constructor
     public ColorPickerGridRecyclerAdapter(Context context, String[] data) {
@@ -31,8 +30,7 @@ public class ColorPickerGridRecyclerAdapter extends RecyclerView.Adapter<ColorPi
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = mInflater.inflate(R.layout.color_picker_item, parent, false);
-        ViewHolder viewHolder = new ViewHolder(view);
-        return viewHolder;
+        return new ViewHolder(view);
     }
 
     // binds the data to the textview in each cell
@@ -51,10 +49,10 @@ public class ColorPickerGridRecyclerAdapter extends RecyclerView.Adapter<ColorPi
 
 
     // stores and recycles views as they are scrolled off screen
-    public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
-        public View colorCircle;
+    class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+        View colorCircle;
 
-        public ViewHolder(View itemView) {
+        ViewHolder(View itemView) {
             super(itemView);
             colorCircle = itemView.findViewById(R.id.color_picker_circle);
             colorCircle.setOnClickListener(this);
@@ -62,7 +60,7 @@ public class ColorPickerGridRecyclerAdapter extends RecyclerView.Adapter<ColorPi
 
         @Override
         public void onClick(View view) {
-            if (mColorClickListener != null) mColorClickListener.onColorClick(view, getAdapterPosition());
+            if (mColorClickListener != null) mColorClickListener.onColorClick(getAdapterPosition());
         }
     }
 
@@ -78,6 +76,6 @@ public class ColorPickerGridRecyclerAdapter extends RecyclerView.Adapter<ColorPi
 
     // parent activity will implement this method to respond to click events
     public interface ColorClickListener {
-        void onColorClick(View view, int position);
+        void onColorClick(int position);
     }
 }

@@ -81,11 +81,11 @@ public class NoteListActivity extends AppCompatActivity implements OpenFolderCal
         setSupportActionBar(toolbar);
         toolbar.setTitle("All");
 
-        ActionBar actionBar = getSupportActionBar();
-        if (actionBar != null) {
-            actionBar.setDisplayHomeAsUpEnabled(false);
-            actionBar.setTitle("All");
-        }
+//        ActionBar actionBar = getSupportActionBar();
+//        if (actionBar != null) {
+//            actionBar.setDisplayHomeAsUpEnabled(false);
+//            actionBar.setTitle("All");
+//        }
 
         final FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
 
@@ -124,6 +124,9 @@ public class NoteListActivity extends AppCompatActivity implements OpenFolderCal
             }
         });
 
+        noteListAdapter = new NoteListAdapter(this, mTwoPane);
+        recyclerView.setAdapter(noteListAdapter);
+
         if (prefs.getBoolean("firstrun", true)) {
             AsyncTask.execute(new Runnable() {
                 @Override
@@ -152,16 +155,17 @@ public class NoteListActivity extends AppCompatActivity implements OpenFolderCal
     }
 
     private void setupRecyclerView(@NonNull RecyclerView recyclerView) {
-        noteListAdapter = new NoteListAdapter(this, mTwoPane);
-        recyclerView.setAdapter(noteListAdapter);
         Folder folder = AppDatabase.getInstance(this).folderDAO().findRootDirectory();
         currentFolderId = folder.getId();
-        List<Folder> childFolders = AppDatabase.getInstance(this).folderDAO().findChildFolder(folder.getId());
-        noteListAdapter.addAll(childFolders);
-        List<Note> childNotes = AppDatabase.getInstance(this).noteDAO().loadAllByParentId(currentFolderId);
-        noteListAdapter.addAll(childNotes);
-
-        registerForContextMenu(recyclerView);
+        final List<Folder> childFolders = AppDatabase.getInstance(this).folderDAO().findChildFolder(currentFolderId);
+        final List<Note> childNotes = AppDatabase.getInstance(this).noteDAO().loadAllByParentId(currentFolderId);
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                noteListAdapter.addAll(childFolders);
+                noteListAdapter.addAll(childNotes);
+            }
+        });
     }
 
     @Override
@@ -176,18 +180,7 @@ public class NoteListActivity extends AppCompatActivity implements OpenFolderCal
         int id = item.getItemId();
 
         if (id == android.R.id.home) {
-            if (historyFolderStack.size() != 0) {
-                String parentId = historyFolderStack.pop();
-                currentFolderId = parentId;
-                new GetFolderSetTitle().execute(currentFolderId);
-                if (historyFolderStack.size() == 0){
-                    getSupportActionBar().setDisplayHomeAsUpEnabled(false);
-                }
-                new GetFolderChild().execute(parentId);
-                return true;
-            }else {
-                return false;
-            }
+            backFolder();
         }
         if (id == R.id.action_new_folder) {
             showCreateFolderDialog();
@@ -227,10 +220,27 @@ public class NoteListActivity extends AppCompatActivity implements OpenFolderCal
     @Override
     public void openFolder(String folderId) {
         historyFolderStack.push(currentFolderId);
-        currentFolderId = folderId;
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        currentFolderId = folderId;
+        noteListAdapter.clear();
         new GetFolderChild().execute(folderId);
+        new GetFolderChildNotes().execute(folderId);
         new GetFolderSetTitle().execute(folderId);
+    }
+
+    public void backFolder() {
+        if (historyFolderStack.size() != 0) {
+            String parentId = historyFolderStack.pop();
+            if (historyFolderStack.size() == 0){
+                getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+            }
+            currentFolderId = parentId;
+            noteListAdapter.clear();
+            new GetFolderChild().execute(currentFolderId);
+            new GetFolderChildNotes().execute(currentFolderId);
+            new GetFolderSetTitle().execute(currentFolderId);
+        }
+
     }
 
     public class CreateFolder extends AsyncTask<Folder, Void, Folder>{
@@ -258,8 +268,21 @@ public class NoteListActivity extends AppCompatActivity implements OpenFolderCal
         @Override
         protected void onPostExecute(List<Folder> folders) {
             super.onPostExecute(folders);
-            noteListAdapter.clear();
             noteListAdapter.addAll(folders);
+        }
+    }
+
+    public class GetFolderChildNotes extends AsyncTask<String, Void, List<Note>>{
+
+        @Override
+        protected List<Note> doInBackground(String... ids) {
+            return AppDatabase.getInstance(getApplicationContext()).noteDAO().loadAllByParentId(ids[0]);
+        }
+
+        @Override
+        protected void onPostExecute(List<Note> notes) {
+            super.onPostExecute(notes);
+            noteListAdapter.addAll(notes);
         }
     }
 
