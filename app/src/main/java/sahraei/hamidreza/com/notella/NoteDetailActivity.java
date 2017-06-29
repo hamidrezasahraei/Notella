@@ -21,6 +21,10 @@ import android.view.Window;
  */
 public class NoteDetailActivity extends AppCompatActivity {
 
+    String noteItemId;
+    String parentId;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -35,8 +39,8 @@ public class NoteDetailActivity extends AppCompatActivity {
 //            }
 //        });
 
-        String noteItemId = getIntent().getStringExtra(NoteDetailFragment.ARG_ITEM_ID);
-        String parentId = getIntent().getStringExtra(NoteDetailFragment.ARG_ITEM_PARENT_ID);;
+        noteItemId = getIntent().getStringExtra(NoteDetailFragment.ARG_ITEM_ID);
+        parentId = getIntent().getStringExtra(NoteDetailFragment.ARG_ITEM_PARENT_ID);;
 
 
 
@@ -84,7 +88,7 @@ public class NoteDetailActivity extends AppCompatActivity {
             //
             // http://developer.android.com/design/patterns/navigation.html#up-vs-back
             //
-            NavUtils.navigateUpTo(this, new Intent(this, NoteListActivity.class));
+            NavUtils.navigateUpTo(this, new Intent(this, NoteListActivity.class).putExtra(NoteListActivity.ARG_NOTE_PARENT, parentId));
             return true;
         }
         return super.onOptionsItemSelected(item);

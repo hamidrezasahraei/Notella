@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Stack;
 
 /**
  * Created by hamidrezasahraei on 29/6/2017 AD.
@@ -28,6 +29,8 @@ public class MyApplication extends Application {
     public static String last_path;
     public static final String BACKUP_EXTENSION = "notella";
     public static final String LAST_PATH_KEY = "path";
+
+    Stack<String> historyFolderStack = new Stack<>();
 
     private SharedPreferences prefs;
 

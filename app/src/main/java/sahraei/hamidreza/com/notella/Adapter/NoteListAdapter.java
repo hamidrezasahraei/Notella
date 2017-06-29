@@ -143,7 +143,6 @@ public class NoteListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                             Intent intent = new Intent(mContext, NoteDetailActivity.class);
                             intent.putExtra(NoteDetailFragment.ARG_ITEM_ID, noteItemViewHolder.note.getId());
                             intent.putExtra(NoteDetailFragment.ARG_ITEM_PARENT_ID, noteItemViewHolder.note.getParentId());
-
                             mContext.startActivity(intent);
                         }
                     }

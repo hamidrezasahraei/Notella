@@ -1,31 +1,22 @@
 package sahraei.hamidreza.com.notella;
 
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
-import android.support.annotation.NonNull;
-import android.support.v4.app.NavUtils;
-import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.text.InputType;
-import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.EditText;
-import android.widget.TextView;
 
 
 import sahraei.hamidreza.com.notella.Adapter.NoteListAdapter;
@@ -33,13 +24,10 @@ import sahraei.hamidreza.com.notella.Adapter.OpenFolderCallBack;
 import sahraei.hamidreza.com.notella.Database.AppDatabase;
 import sahraei.hamidreza.com.notella.Dialog.FileDialog;
 import sahraei.hamidreza.com.notella.Model.Folder;
-import sahraei.hamidreza.com.notella.Model.ListItem;
 import sahraei.hamidreza.com.notella.Model.Note;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Stack;
 
 /**
  * An activity representing a list of Note. This activity
@@ -51,7 +39,7 @@ import java.util.Stack;
  */
 public class NoteListActivity extends AppCompatActivity implements OpenFolderCallBack {
 
-    private List<Object> items;
+    public static final String ARG_NOTE_PARENT = "parent_id";
 
     SharedPreferences prefs;
 
@@ -67,8 +55,6 @@ public class NoteListActivity extends AppCompatActivity implements OpenFolderCal
     String folderName;
 
     NoteListAdapter noteListAdapter;
-
-    Stack<String> historyFolderStack = new Stack<>();
 
     MenuItem backButtonItem;
     private FileDialog fileDialog;
@@ -137,15 +123,16 @@ public class NoteListActivity extends AppCompatActivity implements OpenFolderCal
                 public void run() {
                     Folder folder = new Folder(getString(R.string.all));
                     AppDatabase.getInstance(getApplicationContext()).folderDAO().insertAll(folder);
-                    setupRecyclerView(recyclerView);
+                    setupActivity();
                 }
             });
             prefs.edit().putBoolean("firstrun", false).commit();
         } else {
+
             AsyncTask.execute(new Runnable() {
                 @Override
                 public void run() {
-                    setupRecyclerView(recyclerView);
+                    setupActivity();
                 }
             });
         }
@@ -158,9 +145,16 @@ public class NoteListActivity extends AppCompatActivity implements OpenFolderCal
 
     }
 
-    private void setupRecyclerView(@NonNull RecyclerView recyclerView) {
-        Folder folder = AppDatabase.getInstance(this).folderDAO().findRootDirectory();
-        currentFolderId = folder.getId();
+    private void setupActivity() {
+        Folder folder;
+        String folderId = getIntent().getStringExtra(ARG_NOTE_PARENT);
+        if (folderId == null) {
+            folder = AppDatabase.getInstance(this).folderDAO().findRootDirectory();
+            folderId = folder.getId();
+        }else {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        }
+        currentFolderId = folderId;
         final List<Folder> childFolders = AppDatabase.getInstance(this).folderDAO().findChildFolder(currentFolderId);
         final List<Note> childNotes = AppDatabase.getInstance(this).noteDAO().loadAllByParentId(currentFolderId);
         runOnUiThread(new Runnable() {
@@ -253,7 +247,7 @@ public class NoteListActivity extends AppCompatActivity implements OpenFolderCal
 
     @Override
     public void openFolder(String folderId) {
-        historyFolderStack.push(currentFolderId);
+        MyApplication.instance.historyFolderStack.push(currentFolderId);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         currentFolderId = folderId;
         noteListAdapter.clear();
@@ -263,9 +257,9 @@ public class NoteListActivity extends AppCompatActivity implements OpenFolderCal
     }
 
     public void backFolder() {
-        if (historyFolderStack.size() != 0) {
-            String parentId = historyFolderStack.pop();
-            if (historyFolderStack.size() == 0){
+        if (MyApplication.instance.historyFolderStack.size() != 0) {
+            String parentId = MyApplication.instance.historyFolderStack.pop();
+            if (MyApplication.instance.historyFolderStack.size() == 0){
                 getSupportActionBar().setDisplayHomeAsUpEnabled(false);
             }
             currentFolderId = parentId;
