@@ -12,4 +12,11 @@
     <string name="Submit">OK</string>
     <string name="cancel">Cancel</string>
     <string name="folder_title">Folder Title:</string>
+    <string name="new_folder">New Folder</string>
+    <string name="backup">Backup</string>
+    <string name="restore">Restore</string>
+    <string name="create">Create</string>
+    <string name="required">Required</string>
+    <string name="choose">Choose</string>
+    <string name="select_directory">Select this directory to save:</string>
 </resources>

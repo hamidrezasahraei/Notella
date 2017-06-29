@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.ActionBar;
@@ -16,6 +17,7 @@ import android.support.v7.widget.Toolbar;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.text.InputType;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -29,10 +31,12 @@ import android.widget.TextView;
 import sahraei.hamidreza.com.notella.Adapter.NoteListAdapter;
 import sahraei.hamidreza.com.notella.Adapter.OpenFolderCallBack;
 import sahraei.hamidreza.com.notella.Database.AppDatabase;
+import sahraei.hamidreza.com.notella.Dialog.FileDialog;
 import sahraei.hamidreza.com.notella.Model.Folder;
 import sahraei.hamidreza.com.notella.Model.ListItem;
 import sahraei.hamidreza.com.notella.Model.Note;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
@@ -67,6 +71,7 @@ public class NoteListActivity extends AppCompatActivity implements OpenFolderCal
     Stack<String> historyFolderStack = new Stack<>();
 
     MenuItem backButtonItem;
+    private FileDialog fileDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -100,7 +105,6 @@ public class NoteListActivity extends AppCompatActivity implements OpenFolderCal
             // activity should be in two-pane mode.
             mTwoPane = true;
         }
-
 
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -184,6 +188,19 @@ public class NoteListActivity extends AppCompatActivity implements OpenFolderCal
         }
         if (id == R.id.action_new_folder) {
             showCreateFolderDialog();
+            return true;
+        }
+        if (id == R.id.action_backup) {
+            File mPath = new File(Environment.getExternalStorageDirectory() + "//DIR//");
+            fileDialog = new FileDialog(this, mPath, MyApplication.BACKUP_EXTENSION);
+            fileDialog.addDirectoryListener(new FileDialog.DirectorySelectedListener() {
+                public void directorySelected(File directory) {
+                    Log.d(getClass().getName(), "selected dir " + directory.toString());
+                    MyApplication.instance.backupFromDatabase(directory.toString());
+                }
+            });
+            fileDialog.setSelectDirectoryOption(true);
+            fileDialog.showDialog();
             return true;
         }
         return super.onOptionsItemSelected(item);

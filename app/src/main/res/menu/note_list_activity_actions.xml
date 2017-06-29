@@ -2,8 +2,16 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item android:id="@+id/action_new_folder"
-        android:title="New Folder"
+        android:title="@string/new_folder"
         android:icon="@drawable/ic_create_new_folder_white_24dp"
         app:showAsAction="ifRoom|withText"
+        />
+    <item android:id="@+id/action_backup"
+        android:title="@string/backup"
+        app:showAsAction="never"
+        />
+    <item android:id="@+id/action_restore"
+        android:title="@string/restore"
+        app:showAsAction="never"
         />
 </menu>
