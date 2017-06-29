@@ -1,6 +1,8 @@
 package sahraei.hamidreza.com.notella;
 
+import android.app.Activity;
 import android.app.Application;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Point;
 import android.os.Environment;
@@ -24,7 +26,7 @@ public class MyApplication extends Application {
     public static MyApplication instance;
     public static int DEVICE_HEIGHT;
     public static String last_path;
-    public static final String BACKUP_EXTENSION = "ella";
+    public static final String BACKUP_EXTENSION = "notella";
     public static final String LAST_PATH_KEY = "path";
 
     private SharedPreferences prefs;
@@ -60,6 +62,36 @@ public class MyApplication extends Application {
         try {
             fis = new FileInputStream(dbFile);
             String outFileName = pathToSave+"/"+generateBackupName();
+            // Open the empty db as the output stream
+            OutputStream output = new FileOutputStream(outFileName);
+            // Transfer bytes from the inputfile to the outputfile
+            byte[] buffer = new byte[1024];
+            int length;
+            while ((length = fis.read(buffer))>0){
+                output.write(buffer, 0, length);
+            }
+            // Close the streams
+            output.flush();
+            output.close();
+            fis.close();
+            Toast.makeText(getApplicationContext(), "Successful", Toast.LENGTH_SHORT).show();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return true;
+    }
+
+    public boolean restoreFromBackup(String backupAddress){
+//        final String inFileName = "/data/data/<your.app.package>/databases/foo.db";
+        final String databaseAddress = getApplicationContext().getDatabasePath("notlleaDB").getPath();
+        File dbFile = new File(backupAddress);
+        FileInputStream fis = null;
+        try {
+            fis = new FileInputStream(dbFile);
+            String outFileName = databaseAddress;
             // Open the empty db as the output stream
             OutputStream output = new FileOutputStream(outFileName);
             // Transfer bytes from the inputfile to the outputfile

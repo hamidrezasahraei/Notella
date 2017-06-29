@@ -195,11 +195,28 @@ public class NoteListActivity extends AppCompatActivity implements OpenFolderCal
             fileDialog = new FileDialog(this, mPath, MyApplication.BACKUP_EXTENSION);
             fileDialog.addDirectoryListener(new FileDialog.DirectorySelectedListener() {
                 public void directorySelected(File directory) {
-                    Log.d(getClass().getName(), "selected dir " + directory.toString());
                     MyApplication.instance.backupFromDatabase(directory.toString());
                 }
             });
             fileDialog.setSelectDirectoryOption(true);
+            fileDialog.showDialog();
+            return true;
+        }
+        if (id == R.id.action_restore){
+            File mPath = new File(Environment.getExternalStorageDirectory() + "//DIR//");
+            fileDialog = new FileDialog(this, mPath);
+            fileDialog.addFileListener(new FileDialog.FileSelectedListener() {
+                @Override
+                public void fileSelected(File file) {
+                    boolean result = MyApplication.instance.restoreFromBackup(file.toString());
+                    if (result){
+                        Intent intent = new Intent(NoteListActivity.this, NoteListActivity.class);
+                        startActivity(intent);
+                        finish();
+                    }
+                }
+            });
+            fileDialog.setSelectDirectoryOption(false);
             fileDialog.showDialog();
             return true;
         }
