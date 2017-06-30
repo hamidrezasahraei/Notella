@@ -21,4 +21,6 @@
     <string name="select_directory">Select this directory to save:</string>
     <string name="permission_rational_message">Write and Read External Storage is necessary for backup and restore</string>
     <string name="enable_permissions_message">Go to settings and enable permissions</string>
+    <string name="successful_delete">Successfully Deleted!</string>
+    <string name="sure_message">Are you sure?</string>
 </resources>

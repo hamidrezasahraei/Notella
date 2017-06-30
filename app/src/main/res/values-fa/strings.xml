@@ -21,4 +21,6 @@
     <string name="select_directory">این مکان را جهت ذخیره سازی انتخاب کن</string>
     <string name="permission_rational_message">اجازه ی خواندن و نوشتن در حافظه برای کارکرد پشتیبان گیری لازم است</string>
     <string name="enable_permissions_message">برای فعال سازی این قابلیت از طریق تنظیمات گوشی دسترسی لازم را ارائه دهید</string>
+    <string name="successful_delete">با موفقیت پاک شد</string>
+    <string name="sure_message">آیا اطمینان دارید؟</string>
 </resources>
