@@ -6,6 +6,7 @@ import android.graphics.Typeface;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
@@ -231,6 +232,17 @@ public class NoteDetailFragment extends Fragment implements View.OnClickListener
                     return true;
                 } else {
                     return false;
+                }
+            }
+        });
+
+        FloatingActionButton fb = (FloatingActionButton) rootView.findViewById(R.id.fab);
+        fb.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (hasUnsavedChanges){
+                    saveNote();
+                    hasUnsavedChanges = false;
                 }
             }
         });
