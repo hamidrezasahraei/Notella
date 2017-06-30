@@ -21,13 +21,20 @@ import java.util.Stack;
 
 /**
  * Created by hamidrezasahraei on 29/6/2017 AD.
+ * Some global variables and backup and restore methods
  */
 
 public class MyApplication extends Application {
     public static MyApplication instance;
     public static int DEVICE_HEIGHT;
     public static String last_path;
+
+    /**
+     * The file extension for saved database as backup
+     */
     public static final String BACKUP_EXTENSION = "notella";
+
+    //key for save and reload the last saved backup path
     public static final String LAST_PATH_KEY = "path";
 
     Stack<String> historyFolderStack = new Stack<>();
@@ -42,6 +49,7 @@ public class MyApplication extends Application {
         prefs = getSharedPreferences(getPackageName(), MODE_PRIVATE);
         last_path = prefs.getString(LAST_PATH_KEY, null);
 
+        //used for next versions not in this version
         Point size = new Point();
         ((WindowManager) getSystemService(WINDOW_SERVICE)).getDefaultDisplay().getSize(size);
         DEVICE_HEIGHT = size.y;
@@ -57,8 +65,17 @@ public class MyApplication extends Application {
         prefs.edit().putString(key, value).apply();
     }
 
+    public String getLastSavedPath(){
+        String path = prefs.getString(LAST_PATH_KEY, Environment.getExternalStorageDirectory() + "//DIR//");
+        return path;
+    }
+
+    /**
+     * Take a path for keeping database backup as parameter and make a copy of it
+     * @param pathToSave
+     * @return
+     */
     public boolean backupFromDatabase(String pathToSave){
-//        final String inFileName = "/data/data/<your.app.package>/databases/foo.db";
         final String databaseAddress = getApplicationContext().getDatabasePath("notlleaDB").getPath();
         File dbFile = new File(databaseAddress);
         FileInputStream fis = null;
@@ -87,8 +104,12 @@ public class MyApplication extends Application {
         return true;
     }
 
+    /**
+     * Restore backup from given address backupAddress and replace the database with it
+     * @param backupAddress
+     * @return
+     */
     public boolean restoreFromBackup(String backupAddress){
-//        final String inFileName = "/data/data/<your.app.package>/databases/foo.db";
         final String databaseAddress = getApplicationContext().getDatabasePath("notlleaDB").getPath();
         File dbFile = new File(backupAddress);
         FileInputStream fis = null;
@@ -117,6 +138,10 @@ public class MyApplication extends Application {
         return true;
     }
 
+    /**
+     * Generate a unique name for each backup with help of time
+     * @return
+     */
     private String generateBackupName(){
         Date date = new Date();
         Calendar calendar = Calendar.getInstance();

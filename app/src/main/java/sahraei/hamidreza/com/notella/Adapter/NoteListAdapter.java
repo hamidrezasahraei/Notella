@@ -34,6 +34,10 @@ import sahraei.hamidreza.com.notella.R;
 
 public class NoteListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
+    /**
+     * This sorted list always keep folders top and notes below them
+     * And folders compare with their creation date and also notes.
+     */
     private SortedList<ListItem> items;
     private Context mContext;
     private boolean isTwoPane = false;

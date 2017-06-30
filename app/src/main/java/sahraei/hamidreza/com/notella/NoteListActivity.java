@@ -1,11 +1,16 @@
 package sahraei.hamidreza.com.notella;
 
+import android.Manifest;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
@@ -17,6 +22,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.EditText;
+import android.widget.Toast;
 
 
 import sahraei.hamidreza.com.notella.Adapter.NoteListAdapter;
@@ -27,7 +33,10 @@ import sahraei.hamidreza.com.notella.Model.Folder;
 import sahraei.hamidreza.com.notella.Model.Note;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * An activity representing a list of Note. This activity
@@ -39,8 +48,15 @@ import java.util.List;
  */
 public class NoteListActivity extends AppCompatActivity implements OpenFolderCallBack {
 
+    /**
+     * Use as key for getting opened note
+     * If return from the note page we can get it's parent with this key
+     */
     public static final String ARG_NOTE_PARENT = "parent_id";
 
+    /**
+     * For checking if this is the first run
+     */
     SharedPreferences prefs;
 
     /**
@@ -49,15 +65,30 @@ public class NoteListActivity extends AppCompatActivity implements OpenFolderCal
      */
     private boolean mTwoPane;
 
-    Folder rootFolder;
-
+    /**
+     * Keep the Current selected (opened) folder ID
+     */
     String currentFolderId;
+
+    /**
+     * Current selected fodler name for showing in the toolbar title
+     */
     String folderName;
 
+    //the adapter for list
     NoteListAdapter noteListAdapter;
 
+    //Used for showing or hiding the toolbar back button
     MenuItem backButtonItem;
+
+    //Used for showing the directory selector
     private FileDialog fileDialog;
+
+    private static final int REQUEST_NEEDED_PERMISSIONS_CODE = 112;
+    boolean hasWritePermission;
+    boolean hasReadPermission;
+    List<String> listOfPermissionsNeeded = new ArrayList<>();
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,14 +103,8 @@ public class NoteListActivity extends AppCompatActivity implements OpenFolderCal
         setSupportActionBar(toolbar);
         toolbar.setTitle("All");
 
-//        ActionBar actionBar = getSupportActionBar();
-//        if (actionBar != null) {
-//            actionBar.setDisplayHomeAsUpEnabled(false);
-//            actionBar.setTitle("All");
-//        }
-
+        //For creating a new note
         final FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-
 
         final RecyclerView recyclerView = (RecyclerView) findViewById(R.id.note_list);
         assert recyclerView != null;
@@ -95,7 +120,10 @@ public class NoteListActivity extends AppCompatActivity implements OpenFolderCal
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //TODO: ADD Note
+                /**
+                 * if it is a two pane, just replace {@link NoteDetailFragment} in second place
+                 * if it is not, go to {@link NoteDetailActivity}
+                 */
                 if (mTwoPane) {
                     Bundle arguments = new Bundle();
                     arguments.putString(NoteDetailFragment.ARG_ITEM_ID, NoteDetailFragment.NEW_NOTE_VALUE);
@@ -117,6 +145,10 @@ public class NoteListActivity extends AppCompatActivity implements OpenFolderCal
         noteListAdapter = new NoteListAdapter(this, mTwoPane);
         recyclerView.setAdapter(noteListAdapter);
 
+        /**
+         * If it is the first run, create root directory then fill the recyclerview
+         * //TODO: Refactor this, Must be moved to application
+         */
         if (prefs.getBoolean("firstrun", true)) {
             AsyncTask.execute(new Runnable() {
                 @Override
@@ -145,9 +177,14 @@ public class NoteListActivity extends AppCompatActivity implements OpenFolderCal
 
     }
 
+    /**
+     * Setup root folder and list adapter
+     */
     private void setupActivity() {
         Folder folder;
         String folderId = getIntent().getStringExtra(ARG_NOTE_PARENT);
+
+        //if root folder must be shown
         if (folderId == null) {
             folder = AppDatabase.getInstance(this).folderDAO().findRootDirectory();
             folderId = folder.getId();
@@ -157,6 +194,7 @@ public class NoteListActivity extends AppCompatActivity implements OpenFolderCal
         currentFolderId = folderId;
         final List<Folder> childFolders = AppDatabase.getInstance(this).folderDAO().findChildFolder(currentFolderId);
         final List<Note> childNotes = AppDatabase.getInstance(this).noteDAO().loadAllByParentId(currentFolderId);
+
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -181,42 +219,95 @@ public class NoteListActivity extends AppCompatActivity implements OpenFolderCal
             backFolder();
         }
         if (id == R.id.action_new_folder) {
+            //create a new folder
             showCreateFolderDialog();
             return true;
         }
+
+        //take backup
         if (id == R.id.action_backup) {
-            File mPath = new File(Environment.getExternalStorageDirectory() + "//DIR//");
-            fileDialog = new FileDialog(this, mPath, MyApplication.BACKUP_EXTENSION);
-            fileDialog.addDirectoryListener(new FileDialog.DirectorySelectedListener() {
-                public void directorySelected(File directory) {
-                    MyApplication.instance.backupFromDatabase(directory.toString());
+
+            if (Build.VERSION.SDK_INT >= 23) {
+                checkNeededPermission();
+                if (!hasWritePermission){
+                    listOfPermissionsNeeded.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
                 }
-            });
-            fileDialog.setSelectDirectoryOption(true);
-            fileDialog.showDialog();
-            return true;
+                if (!hasReadPermission){
+                    listOfPermissionsNeeded.add(Manifest.permission.READ_EXTERNAL_STORAGE);
+                }
+                if (!listOfPermissionsNeeded.isEmpty()) {
+                    ActivityCompat.requestPermissions(this, listOfPermissionsNeeded.toArray(new String[listOfPermissionsNeeded.size()]),REQUEST_NEEDED_PERMISSIONS_CODE);
+                }else {
+                    showBackupDialog();
+                }
+
+            }else {
+                showBackupDialog();
+                return true;
+            }
+
         }
+
+        //restore backup
         if (id == R.id.action_restore){
-            File mPath = new File(Environment.getExternalStorageDirectory() + "//DIR//");
-            fileDialog = new FileDialog(this, mPath);
-            fileDialog.addFileListener(new FileDialog.FileSelectedListener() {
-                @Override
-                public void fileSelected(File file) {
-                    boolean result = MyApplication.instance.restoreFromBackup(file.toString());
-                    if (result){
-                        Intent intent = new Intent(NoteListActivity.this, NoteListActivity.class);
-                        startActivity(intent);
-                        finish();
-                    }
+            if (Build.VERSION.SDK_INT >= 23) {
+                checkNeededPermission();
+                if (!hasWritePermission){
+                    listOfPermissionsNeeded.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
                 }
-            });
-            fileDialog.setSelectDirectoryOption(false);
-            fileDialog.showDialog();
-            return true;
+                if (!hasReadPermission){
+                    listOfPermissionsNeeded.add(Manifest.permission.READ_EXTERNAL_STORAGE);
+                }
+                if (!listOfPermissionsNeeded.isEmpty()) {
+                    ActivityCompat.requestPermissions(this, listOfPermissionsNeeded.toArray(new String[listOfPermissionsNeeded.size()]),REQUEST_NEEDED_PERMISSIONS_CODE);
+                }else {
+                    showRestoreDialog();
+                }
+
+            }else {
+                showRestoreDialog();
+                return true;
+            }
         }
         return super.onOptionsItemSelected(item);
     }
 
+    private void showBackupDialog(){
+        File mPath = new File(Environment.getExternalStorageDirectory() + "//DIR//");
+        fileDialog = new FileDialog(this, mPath, MyApplication.BACKUP_EXTENSION);
+        fileDialog.addDirectoryListener(new FileDialog.DirectorySelectedListener() {
+            public void directorySelected(File directory) {
+                MyApplication.instance.backupFromDatabase(directory.toString());
+
+                //keep saving path in order to open the restore dialog from this path
+                MyApplication.instance.putPrefs(MyApplication.LAST_PATH_KEY, directory.toString());
+            }
+        });
+        fileDialog.setSelectDirectoryOption(true);
+        fileDialog.showDialog();
+    }
+
+    private void showRestoreDialog(){
+        File mPath = new File(MyApplication.instance.getLastSavedPath());
+        fileDialog = new FileDialog(this, mPath);
+        fileDialog.addFileListener(new FileDialog.FileSelectedListener() {
+            @Override
+            public void fileSelected(File file) {
+                boolean result = MyApplication.instance.restoreFromBackup(file.toString());
+                if (result){
+                    Intent intent = new Intent(NoteListActivity.this, NoteListActivity.class);
+                    startActivity(intent);
+                    finish();
+                }
+            }
+        });
+        fileDialog.setSelectDirectoryOption(false);
+        fileDialog.showDialog();
+    }
+
+    /**
+     * Show create a folder dialog
+     */
     private void showCreateFolderDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(R.string.folder_title);
@@ -239,12 +330,16 @@ public class NoteListActivity extends AppCompatActivity implements OpenFolderCal
 
         builder.show();
     }
-
+    //Create a folder with given name and the id of parent of ID
     private void createFolder(String parentId, String title){
         Folder folder = new Folder(title, parentId);
         new CreateFolder().execute(folder);
     }
 
+    /**
+     * Select and open a folder from the list and load the list
+     * @param folderId
+     */
     @Override
     public void openFolder(String folderId) {
         MyApplication.instance.historyFolderStack.push(currentFolderId);
@@ -256,6 +351,9 @@ public class NoteListActivity extends AppCompatActivity implements OpenFolderCal
         new GetFolderSetTitle().execute(folderId);
     }
 
+    /**
+     * When back button pressed take the last opened folder from history and select it
+     */
     public void backFolder() {
         if (MyApplication.instance.historyFolderStack.size() != 0) {
             String parentId = MyApplication.instance.historyFolderStack.pop();
@@ -328,5 +426,95 @@ public class NoteListActivity extends AppCompatActivity implements OpenFolderCal
         }
     }
 
+    private void checkNeededPermission(){
+        hasWritePermission = (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED);
+
+        if (Build.VERSION.SDK_INT >= 16) {
+            hasReadPermission = (ContextCompat.checkSelfPermission(this,
+                    Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED);
+        }else {
+            hasReadPermission = true;
+        }
+
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case REQUEST_NEEDED_PERMISSIONS_CODE: {
+
+                Map<String, Integer> perms = new HashMap<>();
+                // Initialize the map with both permissions
+                perms.put(Manifest.permission.WRITE_EXTERNAL_STORAGE, PackageManager.PERMISSION_GRANTED);
+                if (Build.VERSION.SDK_INT >= 16) {
+                    perms.put(Manifest.permission.READ_EXTERNAL_STORAGE, PackageManager.PERMISSION_GRANTED);
+                }
+                // Fill with actual results from user
+                if (grantResults.length > 0) {
+                    for (int i = 0; i < permissions.length; i++)
+                        perms.put(permissions[i], grantResults[i]);
+                    // Check for both permissions
+                    if (perms.get(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
+                            && perms.get(Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+
+                        Intent intent = new Intent(NoteListActivity.this, NoteListActivity.class);
+                        startActivity(intent);
+                        finish();
+
+                    } else {
+                        //permission is denied (this is the first time, when "never ask again" is not checked) so ask again explaining the usage of permission
+//                        // shouldShowRequestPermissionRationale will return true
+                        //show the dialog or snackbar saying its necessary and try again otherwise proceed with setup.
+                        if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) || ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.READ_EXTERNAL_STORAGE)) {
+                            showDialogOK(getString(R.string.permission_rational_message),
+                                    new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            switch (which) {
+                                                case DialogInterface.BUTTON_POSITIVE:
+                                                    checkNeededPermission();
+                                                    if (!hasWritePermission){
+                                                        listOfPermissionsNeeded.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+                                                    }
+                                                    if (!hasReadPermission){
+                                                        if (Build.VERSION.SDK_INT>=16) {
+                                                            listOfPermissionsNeeded.add(Manifest.permission.READ_EXTERNAL_STORAGE);
+                                                        }
+                                                    }
+                                                    if (!listOfPermissionsNeeded.isEmpty()) {
+                                                        ActivityCompat.requestPermissions(NoteListActivity.this, listOfPermissionsNeeded.toArray(new String[listOfPermissionsNeeded.size()]),REQUEST_NEEDED_PERMISSIONS_CODE);
+                                                    }
+                                                    break;
+                                                case DialogInterface.BUTTON_NEGATIVE:
+
+                                                    break;
+                                            }
+                                        }
+                                    });
+                        }
+                        //permission is denied (and never ask again is  checked)
+                        //shouldShowRequestPermissionRationale will return false
+                        else {
+                            Toast.makeText(this, R.string.enable_permissions_message, Toast.LENGTH_LONG)
+                                    .show();
+                            //                            //proceed with logic by disabling the related features or quit the app.
+                        }
+                    }
+                }
+            }
+        }
+
+    }
+
+    private void showDialogOK(String message, DialogInterface.OnClickListener okListener) {
+        new AlertDialog.Builder(this)
+                .setMessage(message)
+                .setPositiveButton(getResources().getString(R.string.Submit), okListener)
+                .setNegativeButton(getResources().getString(R.string.cancel), okListener)
+                .create()
+                .show();
+    }
 
 }

@@ -1,0 +1,24 @@
+<resources>
+    <string name="app_name">نوتلا</string>
+    <string name="title_note_list">یادداشت</string>
+    <string name="title_note_detail">جزئیات یادداشت</string>
+    <string name="choose_color">یک رنگ انتخاب کنید:</string>
+    <string name="all">همه</string>
+    <string name="choose_brush_size">اندازه قلم را انتخاب کنید:</string>
+    <string name="small">کوچک</string>
+    <string name="medium">متوسط</string>
+    <string name="large">بزرگ</string>
+    <string name="saved_impression">ذخیره شد</string>
+    <string name="Submit">تایید</string>
+    <string name="cancel">لغو</string>
+    <string name="folder_title">عنوان پوشه:</string>
+    <string name="new_folder">پوشه جدید</string>
+    <string name="backup">بکاپ</string>
+    <string name="restore">بازیابی</string>
+    <string name="create">ساختن</string>
+    <string name="required">موردنیاز</string>
+    <string name="choose">انتخاب</string>
+    <string name="select_directory">این مکان را جهت ذخیره سازی انتخاب کن</string>
+    <string name="permission_rational_message">اجازه ی خواندن و نوشتن در حافظه برای کارکرد پشتیبان گیری لازم است</string>
+    <string name="enable_permissions_message">برای فعال سازی این قابلیت از طریق تنظیمات گوشی دسترسی لازم را ارائه دهید</string>
+</resources>

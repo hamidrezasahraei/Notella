@@ -106,6 +106,9 @@ public class NoteDetailFragment extends Fragment implements View.OnClickListener
      */
     ProgressBar progressBar;
 
+    /**
+     * Color which shows in color picker list
+     */
     String[] colors = {"#000000", "#FFF44336", "#E91E63", "#9C27B0", "#673AB7", "#3F51B5", "#2196F3",
             "#03A9F4", "#00BCD4", "#009688", "#4CAF50", "#8BC34A", "#CDDC39", "#FFEB3B", "#FFC107",
             "#FF9800", "#FF5722", "#795548", "#9E9E9E", "#607D8B"};
@@ -204,10 +207,11 @@ public class NoteDetailFragment extends Fragment implements View.OnClickListener
         drawButton.setOnClickListener(this);
 
 
-        // set boolean values
+        // if is in Text mode or drawing mode
         isDrawModeOn = false;
         isTextModeOn = true;
 
+        //if is drawing mode, is it in painting mode or erasing mode
         isEraseMode = false;
         isPaintMode = true;
 
@@ -216,6 +220,7 @@ public class NoteDetailFragment extends Fragment implements View.OnClickListener
         noteTextSpannable = editText.getText();
 
         // Handling drawingView's onTouchListener via EditText onTouchListener
+        //for drawing
         editText.setOnTouchListener(new View.OnTouchListener() {
 
             @Override
@@ -235,10 +240,14 @@ public class NoteDetailFragment extends Fragment implements View.OnClickListener
 
     @Override
     public void onStart() {
+        /**
+         * Get Parent folder ID of this note
+         */
         if (getArguments().containsKey(ARG_ITEM_PARENT_ID)) {
             parentId = getArguments().getString(ARG_ITEM_PARENT_ID);
         }
 
+        //
         if (getArguments().containsKey(ARG_ITEM_ID)) {
             noteId = getArguments().getString(ARG_ITEM_ID);
             if (noteId.equals(NEW_NOTE_VALUE)) {

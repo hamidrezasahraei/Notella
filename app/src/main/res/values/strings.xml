@@ -19,4 +19,6 @@
     <string name="required">Required</string>
     <string name="choose">Choose</string>
     <string name="select_directory">Select this directory to save:</string>
+    <string name="permission_rational_message">Write and Read External Storage is necessary for backup and restore</string>
+    <string name="enable_permissions_message">Go to settings and enable permissions</string>
 </resources>

@@ -30,19 +30,8 @@ public class NoteDetailActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_note_detail);
 
-//        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-//        fab.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                Snackbar.make(view, "Replace with your own detail action", Snackbar.LENGTH_LONG)
-//                        .setAction("Action", null).show();
-//            }
-//        });
-
         noteItemId = getIntent().getStringExtra(NoteDetailFragment.ARG_ITEM_ID);
         parentId = getIntent().getStringExtra(NoteDetailFragment.ARG_ITEM_PARENT_ID);;
-
-
 
         // savedInstanceState is non-null when there is fragment state
         // saved from previous configurations of this activity
